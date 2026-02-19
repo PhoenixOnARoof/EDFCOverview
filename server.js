@@ -52,7 +52,7 @@ async function initiateAuth(cmdr, isBeta = false) {
     const challenge = base64UrlEncode(sha256(verifier));
 
     const sessionId = uuidv4();
-    const redirectUri = `http://localhost:${AUTH_PORT}/callback`;
+    const redirectUri = `http://localhost:${AUTH_PORT}/callback?sessionId=${sessionId}`;
 
     sessions.set(sessionId, {
         cmdr,
