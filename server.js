@@ -77,7 +77,7 @@ async function initiateAuth(cmdr, isBeta = false) {
 }
 
 async function exchangeCodeForToken(code, verifier, redirectUri) {
-    const response = await axios.post(`${FRONTIER_AUTH_SERVER}/token`, 
+    const response = await axios.post(`${FRONTIER_AUTH_SERVER}/token`,
         new URLSearchParams({
             grant_type: 'authorization_code',
             client_id: CLIENT_ID,
@@ -127,9 +127,9 @@ app.post('/auth/start', async (req, res) => {
     try {
         const { cmdr, isBeta } = req.body;
         const { authUrl, sessionId } = await initiateAuth(cmdr, isBeta);
-        
-        res.json({ 
-            authUrl, 
+
+        res.json({
+            authUrl,
             sessionId,
             message: 'Open the authUrl in your browser to login'
         });
@@ -142,7 +142,11 @@ app.post('/auth/start', async (req, res) => {
 app.get('/auth/callback', async (req, res) => {
     try {
         const { code, state, sessionId } = req.query;
-        
+
+        console.log("> DEBUG:");
+        console.log(req.query);
+        sessions.forEach(console.log);
+
         const session = sessions.get(sessionId);
         if (!session) {
             return res.status(400).json({ error: 'Invalid session' });
@@ -159,8 +163,8 @@ app.get('/auth/callback', async (req, res) => {
         session.customerId = decoded.usr?.customer_id;
         session.expiresAt = Date.now() + (tokenData.expires_in * 1000);
 
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             sessionId,
             message: 'Authentication successful! You can close this window and use the API.'
         });
@@ -173,7 +177,7 @@ app.get('/auth/callback', async (req, res) => {
 app.get('/auth/status/:sessionId', (req, res) => {
     const { sessionId } = req.params;
     const session = sessions.get(sessionId);
-    
+
     if (!session || !session.accessToken) {
         return res.status(404).json({ authenticated: false });
     }
@@ -190,7 +194,7 @@ app.get('/api/profile/:sessionId', async (req, res) => {
     try {
         const { sessionId } = req.params;
         const session = sessions.get(sessionId);
-        
+
         if (!session || !session.accessToken) {
             return res.status(401).json({ error: 'Not authenticated' });
         }
@@ -207,7 +211,7 @@ app.get('/api/fleetcarrier/:sessionId', async (req, res) => {
     try {
         const { sessionId } = req.params;
         const session = sessions.get(sessionId);
-        
+
         if (!session || !session.accessToken) {
             return res.status(401).json({ error: 'Not authenticated' });
         }
@@ -225,7 +229,7 @@ app.get('/api/market/:sessionId', async (req, res) => {
         const { sessionId } = req.params;
         const { marketId } = req.query;
         const session = sessions.get(sessionId);
-        
+
         if (!session || !session.accessToken) {
             return res.status(401).json({ error: 'Not authenticated' });
         }
@@ -242,7 +246,7 @@ app.get('/api/shipyard/:sessionId', async (req, res) => {
     try {
         const { sessionId } = req.params;
         const session = sessions.get(sessionId);
-        
+
         if (!session || !session.accessToken) {
             return res.status(401).json({ error: 'Not authenticated' });
         }
@@ -259,25 +263,25 @@ app.get('/api/station/:sessionId', async (req, res) => {
     try {
         const { sessionId } = req.params;
         const session = sessions.get(sessionId);
-        
+
         if (!session || !session.accessToken) {
             return res.status(401).json({ error: 'Not authenticated' });
         }
 
         const profile = await capiQuery(session.accessToken, '/profile', session.isBeta);
-        
+
         const result = { ...profile };
-        
+
         if (profile.lastStarport?.services?.commodities) {
             const market = await capiQuery(session.accessToken, '/market', session.isBeta);
             result.market = market;
         }
-        
+
         if (profile.lastStarport?.services?.outfitting || profile.lastStarport?.services?.shipyard) {
             const shipyard = await capiQuery(session.accessToken, '/shipyard', session.isBeta);
             result.shipyard = shipyard;
         }
-        
+
         res.json(result);
     } catch (error) {
         console.error('Station error:', error.response?.data || error.message);
@@ -333,7 +337,7 @@ authApp.use(express.json());
 
 authApp.get('/callback', async (req, res) => {
     const { code, state, sessionId } = req.query;
-    
+
     const session = sessions.get(sessionId);
     if (!session) {
         return res.status(400).send('Invalid session. Please restart authentication.');
