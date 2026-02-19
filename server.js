@@ -343,7 +343,7 @@ authApp.get('/callback', async (req, res) => {
     sessions.forEach(console.log);
 
     const session = sessions.get(sessionId);
-    if (!session) {
+    if (!session?.cmdr) {
         return res.status(400).send('Invalid session. Please restart authentication.');
     }
 
