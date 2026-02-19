@@ -52,7 +52,7 @@ async function initiateAuth(cmdr, isBeta = false) {
     const challenge = base64UrlEncode(sha256(verifier));
 
     const sessionId = uuidv4();
-    const redirectUri = `http://localhost:${AUTH_PORT}/callback?sessionId=${sessionId}`;
+    const redirectUri = `http://localhost:${AUTH_PORT}/${sessionId}/callback`;
 
     sessions.set(sessionId, {
         cmdr,
@@ -335,18 +335,12 @@ const authApp = express();
 authApp.use(cors());
 authApp.use(express.json());
 
-authApp.get('/callback', async (req, res) => {
-    const { code, state, sessionId } = req.query;
+authApp.get('/:sessionId/callback', async (req, res) => {
 
-    console.log("> DEBUG:");
-    console.log(req.query);
-    sessions.forEach(console.log);
+    const { sessionId } = req.params;
+    const { code, state } = req.query;
 
     const session = sessions.get(sessionId);
-    console.log("> SESSION:");
-    console.log(session);
-    console.log(!!session, session?.cmdr);
-    console.log("> sessionId:", sessionId);
 
     if (!session?.cmdr) {
         return res.status(400).send('Invalid session. Please restart authentication.');
