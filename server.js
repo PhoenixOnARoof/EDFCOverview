@@ -338,6 +338,10 @@ authApp.use(express.json());
 authApp.get('/callback', async (req, res) => {
     const { code, state, sessionId } = req.query;
 
+    console.log("> DEBUG:");
+    console.log(req.query);
+    sessions.forEach(console.log);
+
     const session = sessions.get(sessionId);
     if (!session) {
         return res.status(400).send('Invalid session. Please restart authentication.');
