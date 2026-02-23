@@ -7,10 +7,9 @@ export function VerifyDiscordRequest(clientKey) {
   return function (req, res, buf) {
     // const signature = req.get('X-Signature-Ed25519');
     // const timestamp = req.get('X-Signature-Timestamp');
-    // console.log(signature, timestamp, clientKey);
 
-    // console.log('BUFFER');
-    // console.log(buf);
+    console.log('BUFFER');
+    console.log(buf);
 
     // const isValidRequest = verifyKey(buf, signature, timestamp, clientKey);
     // if (!isValidRequest) {
@@ -20,6 +19,7 @@ export function VerifyDiscordRequest(clientKey) {
 
     const signature = req.get('X-Signature-Ed25519');
     const timestamp = req.get('X-Signature-Timestamp');
+    console.log(signature, timestamp, clientKey);
 
     let isVerified;
     let error;
