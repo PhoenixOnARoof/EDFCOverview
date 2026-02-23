@@ -10,7 +10,7 @@ const LOGIN_COMMAND = {
 };
 
 const FLEETCARRIER_COMMAND = {
-  name: 'fleetcarrier',
+  name: 'carrier',
   description: 'View your fleet carrier information',
   type: 1,
   integration_types: [0, 1],
