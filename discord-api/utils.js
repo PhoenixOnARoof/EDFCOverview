@@ -7,7 +7,10 @@ export function VerifyDiscordRequest(clientKey) {
     const signature = req.get('X-Signature-Ed25519');
     const timestamp = req.get('X-Signature-Timestamp');
 
+    console.log('VERIFY:', { signature: !!signature, timestamp: !!timestamp, clientKey: !!clientKey });
+
     const isVerified = verifyKey(buf, signature, timestamp, clientKey);
+    console.log('isVerified:', isVerified);
 
     if (!isVerified) {
       res.status(401).send('Bad request signature');

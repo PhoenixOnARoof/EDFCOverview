@@ -15,15 +15,18 @@ const PORT = process.env.PORT || 8087;
 
 app.use(express.json({ verify: VerifyDiscordRequest(process.env.PUBLIC_KEY) }));
 
+app.all('*', (req, res, next) => {
+  console.log('CATCH-ALL:', req.method, req.path, req.body);
+  next();
+});
+
 app.use((req, res, next) => {
   console.log('After verification:', req.body);
   next();
 });
 
-/**
- * Interactions endpoint URL where Discord will send HTTP requests
- */
 app.post('/interactions', async function (req, res) {
+  console.log('HIT /interactions route!');
 
   // Interaction type and data
   const { type, data } = req.body;
