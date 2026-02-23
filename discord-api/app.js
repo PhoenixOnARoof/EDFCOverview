@@ -12,6 +12,10 @@ import { getFakeProfile, getWikiItem } from './game.js';
 const app = express();
 // Get port, or default to 3000
 const PORT = process.env.PORT || 8087;
+app.use((req, res, next) => {
+  console.log(req, res);
+  next();
+});
 // Parse request body and verifies incoming requests using discord-interactions package
 app.use(verifyKeyMiddleware(process.env.PUBLIC_KEY));
 
@@ -19,7 +23,7 @@ app.use(verifyKeyMiddleware(process.env.PUBLIC_KEY));
  * Interactions endpoint URL where Discord will send HTTP requests
  */
 app.post('/interactions', async function (req, res) {
-  
+
   // Interaction type and data
   const { type, data } = req.body;
 
