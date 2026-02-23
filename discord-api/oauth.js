@@ -26,8 +26,9 @@ function base64UrlEncode(buffer) {
   return buffer.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
+import crypto from "crypto";
+
 function sha256(buffer) {
-  const crypto = require('crypto');
   return crypto.createHash('sha256').update(buffer).digest();
 }
 
