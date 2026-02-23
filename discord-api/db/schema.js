@@ -1,4 +1,4 @@
-import { pgTable, varchar, text, timestamp, boolean, integer, index } from 'drizzle-orm/pg-core';
+import { pgTable, varchar, text, timestamp, boolean, integer, index, serial } from 'drizzle-orm/pg-core';
 
 export const discordOAuthSessions = pgTable('discord_oauth_sessions', {
   sessionId: varchar('session_id', { length: 36 }).primaryKey(),
@@ -14,7 +14,7 @@ export const discordOAuthSessions = pgTable('discord_oauth_sessions', {
 }));
 
 export const discordOAuthTokens = pgTable('discord_oauth_tokens', {
-  id: integer('id').primaryKey({ generatedAlwaysAsIdentity: true }),
+  id: serial('id').primaryKey(),
   discordUserId: varchar('discord_user_id', { length: 20 }).notNull().unique(),
   accessToken: text('access_token').notNull(),
   refreshToken: text('refresh_token').notNull(),
