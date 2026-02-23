@@ -118,3 +118,56 @@ export function createPlayerEmbed(profile) {
     },
   };
 }
+
+export function createFleetCarrierEmbed(fc) {
+  const formatCredits = (amount) => {
+    return Number(amount).toLocaleString();
+  };
+
+  const stateColors = {
+    normalOperation: 0x22c55e,
+    decommissioned: 0xef4444,
+    reserved: 0xf59e0b,
+  };
+
+  return {
+    type: 'rich',
+    title: `FC ${fc.name.callsign} - ${fc.currentStarSystem}`,
+    color: stateColors[fc.state] || 0x6b7280,
+    fields: [
+      {
+        name: 'Balance',
+        value: `${formatCredits(fc.balance)} CR`,
+        inline: true,
+      },
+      {
+        name: 'Fuel',
+        value: `${fc.fuel} T`,
+        inline: true,
+      },
+      {
+        name: 'Status',
+        value: fc.state,
+        inline: true,
+      },
+      {
+        name: 'Cargo',
+        value: `${fc.capacity.cargoNotForSale} / ${fc.capacity.freeSpace + fc.capacity.cargoNotForSale}`,
+        inline: true,
+      },
+      {
+        name: 'Crew',
+        value: `${fc.capacity.crew} / ${fc.capacity.crew + fc.capacity.freeSpace}`,
+        inline: true,
+      },
+      {
+        name: 'Docking',
+        value: fc.dockingAccess === 'all' ? 'Open to All' : fc.dockingAccess,
+        inline: true,
+      },
+    ],
+    footer: {
+      text: 'Fleet Carrier',
+    },
+  };
+}

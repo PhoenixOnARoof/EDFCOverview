@@ -3,125 +3,131 @@ import express from 'express';
 import { InteractionType, InteractionResponseType, verifyKeyMiddleware } from 'discord-interactions';
 import {
   VerifyDiscordRequest,
-  getServerLeaderboard,
-  createPlayerEmbed,
+  createFleetCarrierEmbed,
 } from './utils.js';
-import { getFakeProfile, getWikiItem } from './game.js';
+import { handleOAuthCallback, getValidAccessToken, getFleetCarrier, isLoggedIn, createOAuthSession } from './oauth.js';
 
 // Create an express app
 const app = express();
 // Get port, or default to 3000
 const PORT = process.env.PORT || 8087;
 
-// app.use(express.json({ verify: VerifyDiscordRequest(process.env.PUBLIC_KEY) }));
+app.use(express.json());
+
+app.get('/edfc/:sessionId/callback', async (req, res) => {
+  const { sessionId } = req.params;
+  const { code, state } = req.query;
+
+  console.log('OAuth callback:', { sessionId, code: !!code, state: !!state });
+
+  try {
+    await handleOAuthCallback(sessionId, code, state);
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { 
+              font-family: Arial, sans-serif; 
+              display: flex; 
+              justify-content: center; 
+              align-items: center; 
+              height: 100vh; 
+              margin: 0; 
+              background: #1a1a2e; 
+              color: #fff; 
+            }
+            .container { text-align: center; padding: 40px; background: #16213e; border-radius: 10px; }
+            h1 { color: #4ade80; }
+            p { color: #94a3b8; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>Authentication Successful!</h1>
+            <p>Your Frontier account has been linked.</p>
+            <p>You can close this window.</p>
+          </div>
+        </body>
+      </html>
+    `);
+  } catch (error) {
+    console.error('OAuth callback error:', error);
+    res.status(500).send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { 
+              font-family: Arial, sans-serif; 
+              display: flex; 
+              justify-content: center; 
+              align-items: center; 
+              height: 100vh; 
+              margin: 0; 
+              background: #1a1a2e; 
+              color: #fff; 
+            }
+            .container { text-align: center; padding: 40px; background: #16213e; border-radius: 10px; }
+            h1 { color: #ef4444; }
+            p { color: #94a3b8; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>Authentication Failed</h1>
+            <p>${error.message}</p>
+          </div>
+        </body>
+      </html>
+    `);
+  }
+});
 
 app.use(verifyKeyMiddleware(process.env.PUBLIC_KEY));
 
-// app.all('*', (req, res, next) => {
-//   console.log('CATCH-ALL:', req.method, req.path, req.body);
-//   next();
-// });
-
-// app.use((req, res, next) => {
-//   console.log('After verification:', req.body);
-//   next();
-// });
-
 app.post('/edfc/interactions', async function (req, res) {
-
-  // Interaction type and data
   const { type, data } = req.body;
+  const discordUserId = req.body.user?.id;
 
-  // Logging
   console.log(type, data);
 
-  /**
-   * Handle verification requests
-   */
   if (type === InteractionType.PING) {
     return res.send({ type: InteractionResponseType.PONG });
   }
 
-  // Log request bodies
-  console.log(req.body);
-
-  /**
-   * Handle slash command requests
-   * See https://discord.com/developers/docs/interactions/application-commands#slash-commands
-   */
   if (type === InteractionType.APPLICATION_COMMAND) {
     const { name } = data;
 
-    // "leaderboard" command
-    if (name === 'leaderboard') {
-      // Send a message into the channel where command was triggered from
-      return res.send({
-        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-        data: {
-          content: await getServerLeaderboard(req.body.guild.id),
-          allowed_mentions: {
-            parse: [],
+    if (name === 'login') {
+      const userLoggedIn = await isLoggedIn(discordUserId);
+
+      if (userLoggedIn) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: 'You are already logged in!',
+            flags: 64,
           },
-        },
-      });
-    }
-    // "profile" command
-    if (name === 'profile') {
-      const profile = getFakeProfile(0);
-      const profileEmbed = createPlayerEmbed(profile);
-
-      // Use interaction context that the interaction was triggered from
-      const interactionContext = req.body.context;
-
-      // Construct `data` for our interaction response. The profile embed will be included regardless of interaction context
-      let profilePayloadData = {
-        embeds: [profileEmbed],
-      };
-
-      // If profile isn't run in a DM with the app, we'll make the response ephemeral and add a share button
-      if (interactionContext !== 1) {
-        // Make message ephemeral
-        profilePayloadData['flags'] = 64;
-        // Add button to components
-        profilePayloadData['components'] = [
-          {
-            type: 1,
-            components: [
-              {
-                type: 2,
-                label: 'Share Profile',
-                custom_id: 'share_profile',
-                style: 2,
-              },
-            ],
-          },
-        ];
+        });
       }
 
-      // Send response
-      return res.send({
-        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-        data: profilePayloadData,
-      });
-    }
-    // "link" command
-    if (name === 'link') {
-      // Send a message into the channel where command was triggered from
+      const { sessionId, authUrl } = await createOAuthSession(discordUserId);
+
       return res.send({
         type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
         data: {
-          content:
-            'Authorize your Quests of Wumpus account with your Discord profile.',
+          content: 'Click the button below to link your Frontier account:',
+          flags: 64,
           components: [
             {
               type: 1,
               components: [
                 {
                   type: 2,
-                  label: 'Link Account',
+                  label: 'Link Frontier Account',
                   style: 5,
-                  // If you were building this functionality, you could guide the user through authorizing via your game/site
-                  url: 'https://discord.com/developers/docs/intro',
+                  url: authUrl,
                 },
               ],
             },
@@ -129,30 +135,119 @@ app.post('/edfc/interactions', async function (req, res) {
         },
       });
     }
-    // "wiki" command
-    if (name === 'wiki') {
-      const option = data.options[0];
-      const selectedItem = getWikiItem(option.value);
-      // Send a message into the channel where command was triggered from
-      return res.send({
-        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-        data: {
-          content: `${selectedItem.emoji} **${selectedItem.name}**: ${selectedItem.description}`,
-        },
-      });
+
+    if (name === 'fleetcarrier') {
+      const userLoggedIn = await isLoggedIn(discordUserId);
+
+      if (!userLoggedIn) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: 'You need to login first! Use `/login` to link your Frontier account.',
+            flags: 64,
+          },
+        });
+      }
+
+      try {
+        const fc = await getFleetCarrier(discordUserId);
+
+        if (!fc) {
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: {
+              content: 'Unable to fetch fleet carrier data. Please try again.',
+              flags: 64,
+            },
+          });
+        }
+
+        const fcEmbed = createFleetCarrierEmbed(fc);
+        const interactionContext = req.body.context;
+
+        let payloadData = {
+          embeds: [fcEmbed],
+        };
+
+        if (interactionContext !== 1) {
+          payloadData.flags = 64;
+          payloadData.components = [
+            {
+              type: 1,
+              components: [
+                {
+                  type: 2,
+                  label: 'Share Fleet Carrier',
+                  custom_id: 'share_fleetcarrier',
+                  style: 2,
+                },
+              ],
+            },
+          ];
+        }
+
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: payloadData,
+        });
+      } catch (error) {
+        console.error('Fleet carrier error:', error);
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: `Error fetching fleet carrier: ${error.message}`,
+            flags: 64,
+          },
+        });
+      }
     }
   }
 
-  // handle button interaction
   if (type === InteractionType.MESSAGE_COMPONENT) {
-    const profile = getFakeProfile(0);
-    const profileEmbed = createPlayerEmbed(profile);
-    return res.send({
-      type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-      data: {
-        embeds: [profileEmbed],
-      },
-    });
+    const customId = data.custom_id;
+
+    if (customId === 'share_fleetcarrier') {
+      const userLoggedIn = await isLoggedIn(discordUserId);
+
+      if (!userLoggedIn) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: 'You need to login first! Use `/login` to link your Frontier account.',
+            flags: 64,
+          },
+        });
+      }
+
+      try {
+        const fc = await getFleetCarrier(discordUserId);
+
+        if (!fc) {
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: {
+              content: 'Unable to fetch fleet carrier data.',
+            },
+          });
+        }
+
+        const fcEmbed = createFleetCarrierEmbed(fc);
+
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            embeds: [fcEmbed],
+          },
+        });
+      } catch (error) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: `Error: ${error.message}`,
+          },
+        });
+      }
+    }
   }
 });
 
