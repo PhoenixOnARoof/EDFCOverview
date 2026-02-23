@@ -17,7 +17,8 @@ const PORT = process.env.PORT || 8087;
 //   next();
 // });
 // Parse request body and verifies incoming requests using discord-interactions package
-app.use(verifyKeyMiddleware(process.env.PUBLIC_KEY));
+// app.use(verifyKeyMiddleware(process.env.PUBLIC_KEY));
+app.use(express.json({ verify: VerifyDiscordRequest(process.env.PUBLIC_KEY) }));
 
 /**
  * Interactions endpoint URL where Discord will send HTTP requests
