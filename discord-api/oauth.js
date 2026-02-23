@@ -1,6 +1,7 @@
 import { db } from './db/index.js';
 import { discordOAuthSessions, discordOAuthTokens } from './db/schema.js';
 import { eq, and } from 'drizzle-orm';
+import { getCached, invalidateUserCache } from './cache.js';
 
 const FRONTIER_AUTH_SERVER = 'https://auth.frontierstore.net';
 const FRONTIER_CLIENT_ID = process.env.FRONTIER_CLIENT_ID;
@@ -206,6 +207,7 @@ export async function getOAuthToken(discordUserId) {
 }
 
 export async function revokeOAuthToken(discordUserId) {
+  await invalidateUserCache(discordUserId);
   await db
     .delete(discordOAuthTokens)
     .where(eq(discordOAuthTokens.discordUserId, discordUserId));
@@ -251,23 +253,88 @@ async function fetchCapi(endpoint, accessToken, isBeta = false) {
 }
 
 export async function getFleetCarrier(discordUserId, isBeta = false) {
-  const accessToken = await getValidAccessToken(discordUserId);
+  const cacheKey = `fleetcarrier:${discordUserId}:${isBeta ? 'beta' : 'live'}`;
   
-  if (!accessToken) {
-    return null;
-  }
-
-  return fetchCapi('/fleetcarrier', accessToken, isBeta);
+  return getCached(cacheKey, async () => {
+    const accessToken = await getValidAccessToken(discordUserId);
+    if (!accessToken) {
+      return null;
+    }
+    return fetchCapi('/fleetcarrier', accessToken, isBeta);
+  });
 }
 
 export async function getCommanderProfile(discordUserId, isBeta = false) {
+  const cacheKey = `profile:${discordUserId}:${isBeta ? 'beta' : 'live'}`;
+  
+  return getCached(cacheKey, async () => {
+    const accessToken = await getValidAccessToken(discordUserId);
+    if (!accessToken) {
+      return null;
+    }
+    return fetchCapi('/profile', accessToken, isBeta);
+  });
+}
+
+export async function getMarket(discordUserId, isBeta = false) {
+  const cacheKey = `market:${discordUserId}:${isBeta ? 'beta' : 'live'}`;
+  
+  return getCached(cacheKey, async () => {
+    const accessToken = await getValidAccessToken(discordUserId);
+    if (!accessToken) {
+      return null;
+    }
+    return fetchCapi('/market', accessToken, isBeta);
+  });
+}
+
+export async function getShipyard(discordUserId, isBeta = false) {
+  const cacheKey = `shipyard:${discordUserId}:${isBeta ? 'beta' : 'live'}`;
+  
+  return getCached(cacheKey, async () => {
+    const accessToken = await getValidAccessToken(discordUserId);
+    if (!accessToken) {
+      return null;
+    }
+    return fetchCapi('/shipyard', accessToken, isBeta);
+  });
+}
+
+export async function getCommunityGoals(discordUserId, isBeta = false) {
+  const cacheKey = `communitygoals:${discordUserId}:${isBeta ? 'beta' : 'live'}`;
+  
+  return getCached(cacheKey, async () => {
+    const accessToken = await getValidAccessToken(discordUserId);
+    if (!accessToken) {
+      return null;
+    }
+    return fetchCapi('/communitygoals', accessToken, isBeta);
+  });
+}
+
+export async function getJournal(discordUserId, isBeta = false, year = null, month = null, day = null) {
   const accessToken = await getValidAccessToken(discordUserId);
   
   if (!accessToken) {
     return null;
   }
 
-  return fetchCapi('/profile', accessToken, isBeta);
+  let endpoint = '/journal';
+  if (year && month && day) {
+    endpoint = `/journal/${year}/${month}/${day}`;
+  }
+
+  return fetchCapi(endpoint, accessToken, isBeta);
+}
+
+export async function getVisitedStars(discordUserId, isBeta = false) {
+  const accessToken = await getValidAccessToken(discordUserId);
+  
+  if (!accessToken) {
+    return null;
+  }
+
+  return fetchCapi('/visitedstars', accessToken, isBeta);
 }
 
 export async function isLoggedIn(discordUserId) {

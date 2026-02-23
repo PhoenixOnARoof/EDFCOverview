@@ -5,8 +5,15 @@ import {
   VerifyDiscordRequest,
   createFleetCarrierEmbed,
   createCommanderEmbed,
+  createMarketEmbed,
+  createShipyardEmbed,
+  createCommunityGoalsEmbed,
+  createShipsEmbed,
+  createSquadronEmbed,
+  createStarportEmbed,
+  createLastSystemEmbed,
 } from './utils.js';
-import { handleOAuthCallback, getValidAccessToken, getFleetCarrier, getCommanderProfile, isLoggedIn, createOAuthSession } from './oauth.js';
+import { handleOAuthCallback, getValidAccessToken, getFleetCarrier, getCommanderProfile, getMarket, getShipyard, getCommunityGoals, getJournal, isLoggedIn, createOAuthSession, revokeOAuthToken } from './oauth.js';
 
 // Create an express app
 const app = express();
@@ -137,7 +144,31 @@ app.post('/edfc/interactions', async function (req, res) {
       });
     }
 
-    if (name === 'fleetcarrier') {
+    if (name === 'logout') {
+      const userLoggedIn = await isLoggedIn(discordUserId);
+
+      if (!userLoggedIn) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: 'You are not logged in!',
+            flags: 64,
+          },
+        });
+      }
+
+      await revokeOAuthToken(discordUserId);
+
+      return res.send({
+        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+        data: {
+          content: 'You have been logged out successfully. Your Frontier account has been unlinked.',
+          flags: 64,
+        },
+      });
+    }
+
+    if (name === 'carrier') {
       const userLoggedIn = await isLoggedIn(discordUserId);
 
       if (!userLoggedIn) {
@@ -263,6 +294,382 @@ app.post('/edfc/interactions', async function (req, res) {
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
           data: {
             content: `Error fetching profile: ${error.message}`,
+            flags: 64,
+          },
+        });
+      }
+    }
+
+    if (name === 'market') {
+      const userLoggedIn = await isLoggedIn(discordUserId);
+
+      if (!userLoggedIn) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: 'You need to login first! Use `/login` to link your Frontier account.',
+            flags: 64,
+          },
+        });
+      }
+
+      try {
+        const market = await getMarket(discordUserId);
+
+        if (!market) {
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: {
+              content: 'Unable to fetch market data. Please try again.',
+              flags: 64,
+            },
+          });
+        }
+
+        const marketEmbed = createMarketEmbed(market);
+
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            embeds: [marketEmbed],
+            flags: 64,
+          },
+        });
+      } catch (error) {
+        console.error('Market error:', error);
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: `Error fetching market: ${error.message}`,
+            flags: 64,
+          },
+        });
+      }
+    }
+
+    if (name === 'shipyard') {
+      const userLoggedIn = await isLoggedIn(discordUserId);
+
+      if (!userLoggedIn) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: 'You need to login first! Use `/login` to link your Frontier account.',
+            flags: 64,
+          },
+        });
+      }
+
+      try {
+        const shipyard = await getShipyard(discordUserId);
+
+        if (!shipyard) {
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: {
+              content: 'Unable to fetch shipyard data. Please try again.',
+              flags: 64,
+            },
+          });
+        }
+
+        const shipyardEmbed = createShipyardEmbed(shipyard);
+
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            embeds: [shipyardEmbed],
+            flags: 64,
+          },
+        });
+      } catch (error) {
+        console.error('Shipyard error:', error);
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: `Error fetching shipyard: ${error.message}`,
+            flags: 64,
+          },
+        });
+      }
+    }
+
+    if (name === 'communitygoals') {
+      const userLoggedIn = await isLoggedIn(discordUserId);
+
+      if (!userLoggedIn) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: 'You need to login first! Use `/login` to link your Frontier account.',
+            flags: 64,
+          },
+        });
+      }
+
+      try {
+        const goals = await getCommunityGoals(discordUserId);
+
+        if (!goals) {
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: {
+              content: 'Unable to fetch community goals. Please try again.',
+              flags: 64,
+            },
+          });
+        }
+
+        const goalsEmbed = createCommunityGoalsEmbed(goals);
+
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            embeds: [goalsEmbed],
+            flags: 64,
+          },
+        });
+      } catch (error) {
+        console.error('Community goals error:', error);
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: `Error fetching community goals: ${error.message}`,
+            flags: 64,
+          },
+        });
+      }
+    }
+
+    if (name === 'journal') {
+      const userLoggedIn = await isLoggedIn(discordUserId);
+
+      if (!userLoggedIn) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: 'You need to login first! Use `/login` to link your Frontier account.',
+            flags: 64,
+          },
+        });
+      }
+
+      try {
+        const journal = await getJournal(discordUserId);
+
+        if (!journal) {
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: {
+              content: 'Unable to fetch journal data. Please try again.',
+              flags: 64,
+            },
+          });
+        }
+
+        const eventCount = Array.isArray(journal) ? journal.length : 0;
+
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: `Journal fetched successfully. ${eventCount} event(s) found.`,
+            flags: 64,
+          },
+        });
+      } catch (error) {
+        console.error('Journal error:', error);
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: `Error fetching journal: ${error.message}`,
+            flags: 64,
+          },
+        });
+      }
+    }
+
+    if (name === 'ships') {
+      const userLoggedIn = await isLoggedIn(discordUserId);
+
+      if (!userLoggedIn) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: 'You need to login first! Use `/login` to link your Frontier account.',
+            flags: 64,
+          },
+        });
+      }
+
+      try {
+        const profile = await getCommanderProfile(discordUserId);
+
+        if (!profile || !profile.commander) {
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: {
+              content: 'Unable to fetch ships data. Please try again.',
+              flags: 64,
+            },
+          });
+        }
+
+        const shipsEmbed = createShipsEmbed(profile);
+
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            embeds: [shipsEmbed],
+            flags: 64,
+          },
+        });
+      } catch (error) {
+        console.error('Ships error:', error);
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: `Error fetching ships: ${error.message}`,
+            flags: 64,
+          },
+        });
+      }
+    }
+
+    if (name === 'squadron') {
+      const userLoggedIn = await isLoggedIn(discordUserId);
+
+      if (!userLoggedIn) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: 'You need to login first! Use `/login` to link your Frontier account.',
+            flags: 64,
+          },
+        });
+      }
+
+      try {
+        const profile = await getCommanderProfile(discordUserId);
+
+        if (!profile || !profile.commander) {
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: {
+              content: 'Unable to fetch squadron data. Please try again.',
+              flags: 64,
+            },
+          });
+        }
+
+        const squadronEmbed = createSquadronEmbed(profile);
+
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            embeds: [squadronEmbed],
+            flags: 64,
+          },
+        });
+      } catch (error) {
+        console.error('Squadron error:', error);
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: `Error fetching squadron: ${error.message}`,
+            flags: 64,
+          },
+        });
+      }
+    }
+
+    if (name === 'laststarport') {
+      const userLoggedIn = await isLoggedIn(discordUserId);
+
+      if (!userLoggedIn) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: 'You need to login first! Use `/login` to link your Frontier account.',
+            flags: 64,
+          },
+        });
+      }
+
+      try {
+        const profile = await getCommanderProfile(discordUserId);
+
+        if (!profile || !profile.commander) {
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: {
+              content: 'Unable to fetch starport data. Please try again.',
+              flags: 64,
+            },
+          });
+        }
+
+        const starportEmbed = createStarportEmbed(profile);
+
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            embeds: [starportEmbed],
+            flags: 64,
+          },
+        });
+      } catch (error) {
+        console.error('Starport error:', error);
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: `Error fetching starport: ${error.message}`,
+            flags: 64,
+          },
+        });
+      }
+    }
+
+    if (name === 'lastsystem') {
+      const userLoggedIn = await isLoggedIn(discordUserId);
+
+      if (!userLoggedIn) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: 'You need to login first! Use `/login` to link your Frontier account.',
+            flags: 64,
+          },
+        });
+      }
+
+      try {
+        const profile = await getCommanderProfile(discordUserId);
+
+        if (!profile || !profile.commander) {
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: {
+              content: 'Unable to fetch system data. Please try again.',
+              flags: 64,
+            },
+          });
+        }
+
+        const systemEmbed = createLastSystemEmbed(profile);
+
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            embeds: [systemEmbed],
+            flags: 64,
+          },
+        });
+      } catch (error) {
+        console.error('Last system error:', error);
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: `Error fetching system: ${error.message}`,
             flags: 64,
           },
         });

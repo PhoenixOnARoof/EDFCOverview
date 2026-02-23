@@ -220,3 +220,303 @@ export function createCommanderEmbed(commander) {
     },
   };
 }
+
+export function createMarketEmbed(market) {
+  const formatCredits = (amount) => {
+    return Number(amount).toLocaleString();
+  };
+
+  const commodityCount = market.commodities?.length || 0;
+  const serviceStatus = Object.entries(market.services || {})
+    .filter(([_, status]) => status === 'ok')
+    .map(([service]) => service)
+    .join(', ') || 'None';
+
+  return {
+    type: 'rich',
+    title: `Market - ${market.name}`,
+    color: 0x3b82f6,
+    fields: [
+      {
+        name: 'Station Type',
+        value: market.outpostType || 'Unknown',
+        inline: true,
+      },
+      {
+        name: 'Commodities',
+        value: commodityCount.toString(),
+        inline: true,
+      },
+      {
+        name: 'Services',
+        value: serviceStatus,
+        inline: false,
+      },
+    ],
+    footer: {
+      text: `ID: ${market.id}`,
+    },
+  };
+}
+
+export function createShipyardEmbed(shipyard) {
+  const shipCount = Object.keys(shipyard.ships?.shipyard_list || {}).length;
+  const moduleCount = Object.keys(shipyard.modules || {}).length;
+
+  const serviceStatus = Object.entries(shipyard.services || {})
+    .filter(([_, status]) => status === 'ok')
+    .map(([service]) => service)
+    .join(', ') || 'None';
+
+  return {
+    type: 'rich',
+    title: `Shipyard - ${shipyard.name}`,
+    color: 0x8b5cf6,
+    fields: [
+      {
+        name: 'Station Type',
+        value: shipyard.outpostType || 'Unknown',
+        inline: true,
+      },
+      {
+        name: 'Ships Available',
+        value: shipCount.toString(),
+        inline: true,
+      },
+      {
+        name: 'Modules Available',
+        value: moduleCount.toString(),
+        inline: true,
+      },
+      {
+        name: 'Services',
+        value: serviceStatus,
+        inline: false,
+      },
+    ],
+    footer: {
+      text: `ID: ${shipyard.id}`,
+    },
+  };
+}
+
+export function createCommunityGoalsEmbed(communityGoals) {
+  const goals = communityGoals.active || [];
+  
+  if (goals.length === 0) {
+    return {
+      type: 'rich',
+      title: 'Community Goals',
+      color: 0x6b7280,
+      description: 'No active community goals',
+      footer: {
+        text: 'Community Goals',
+      },
+    };
+  }
+
+  const fields = goals.slice(0, 10).map((goal) => {
+    const isCompleted = goal.isComplete || false;
+    const tierInfo = goal.tierCurrent && goal.tierTotal 
+      ? `Tier ${goal.tierCurrent}/${goal.tierTotal}` 
+      : '';
+    
+    return {
+      name: `${goal.title || 'Unknown Goal'}`,
+      value: `${isCompleted ? '✅ Completed' : '🔄 Active'} | ${tierInfo}\n${goal.exploitName || ''}`.trim(),
+      inline: false,
+    };
+  });
+
+  return {
+    type: 'rich',
+    title: 'Community Goals',
+    color: 0xf59e0b,
+    fields,
+    footer: {
+      text: `${goals.length} goal(s)`,
+    },
+  };
+}
+
+export function createShipsEmbed(profile) {
+  const formatCredits = (amount) => {
+    return Number(amount).toLocaleString();
+  };
+
+  const ships = profile.ships || {};
+  const shipEntries = Object.values(ships);
+  
+  if (shipEntries.length === 0) {
+    return {
+      type: 'rich',
+      title: 'Your Ships',
+      color: 0x6b7280,
+      description: 'You don\'t own any ships',
+      footer: {
+        text: 'Ships',
+      },
+    };
+  }
+
+  const sortedShips = shipEntries.sort((a, b) => b.value.total - a.value.total);
+
+  const fields = sortedShips.slice(0, 10).map((ship) => {
+    const isCurrentShip = ship.id === profile.commander.currentShipId;
+    const location = ship.starsystem?.name || 'Unknown';
+    const station = ship.station?.name || '';
+    
+    return {
+      name: `${isCurrentShip ? '⭐ ' : ''}${ship.shipName || ship.name} (${ship.shipID || 'N/A'})`,
+      value: `Type: ${ship.name}\nValue: ${formatCredits(ship.value.total)} CR\nLocation: ${location}${station ? ` @ ${station}` : ''}`,
+      inline: true,
+    };
+  });
+
+  const totalValue = shipEntries.reduce((sum, ship) => sum + (ship.value?.total || 0), 0);
+
+  return {
+    type: 'rich',
+    title: `Your Ships (${shipEntries.length})`,
+    color: 0x10b981,
+    fields,
+    footer: {
+      text: `Total Fleet Value: ${formatCredits(totalValue)} CR`,
+    },
+  };
+}
+
+export function createSquadronEmbed(profile) {
+  const squadron = profile.squadron;
+  
+  if (!squadron || !squadron.name) {
+    return {
+      type: 'rich',
+      title: 'Squadron',
+      color: 0x6b7280,
+      description: 'You are not part of a squadron',
+      footer: {
+        text: 'Squadron',
+      },
+    };
+  }
+
+  return {
+    type: 'rich',
+    title: `Squadron: ${squadron.name}`,
+    color: 0xec4899,
+    fields: [
+      {
+        name: 'Tag',
+        value: `[${squadron.tag || 'N/A'}]`,
+        inline: true,
+      },
+      {
+        name: 'Rank',
+        value: squadron.rank || 'None',
+        inline: true,
+      },
+      {
+        name: 'Joined',
+        value: squadron.joined || 'Unknown',
+        inline: true,
+      },
+    ],
+    footer: {
+      text: 'Squadron',
+    },
+  };
+}
+
+export function createStarportEmbed(profile) {
+  const starport = profile.lastStarport;
+  
+  if (!starport || !starport.name) {
+    return {
+      type: 'rich',
+      title: 'Last Starport',
+      color: 0x6b7280,
+      description: 'No starport data available',
+      footer: {
+        text: 'Starport',
+      },
+    };
+  }
+
+  const services = Object.entries(starport.services || {})
+    .filter(([_, status]) => status === 'ok')
+    .map(([service]) => service);
+
+  return {
+    type: 'rich',
+    title: `Last Starport: ${starport.name}`,
+    color: 0x06b6d4,
+    fields: [
+      {
+        name: 'System',
+        value: profile.lastSystem?.name || 'Unknown',
+        inline: true,
+      },
+      {
+        name: 'Faction',
+        value: starport.faction || 'Unknown',
+        inline: true,
+      },
+      {
+        name: 'Minor Faction',
+        value: starport.minorfaction || 'Unknown',
+        inline: true,
+      },
+      {
+        name: 'Services',
+        value: services.length > 0 ? services.join(', ') : 'None',
+        inline: false,
+      },
+    ],
+    footer: {
+      text: `ID: ${starport.id}`,
+    },
+  };
+}
+
+export function createLastSystemEmbed(profile) {
+  const system = profile.lastSystem;
+  
+  if (!system || !system.name) {
+    return {
+      type: 'rich',
+      title: 'Last System',
+      color: 0x6b7280,
+      description: 'No system data available',
+      footer: {
+        text: 'System',
+      },
+    };
+  }
+
+  return {
+    type: 'rich',
+    title: `Last System: ${system.name}`,
+    color: 0x8b5cf6,
+    fields: [
+      {
+        name: 'Name',
+        value: system.name,
+        inline: true,
+      },
+      {
+        name: 'Faction',
+        value: system.faction || 'None',
+        inline: true,
+      },
+      {
+        name: 'ID',
+        value: system.id?.toString() || 'Unknown',
+        inline: true,
+      },
+    ],
+    footer: {
+      text: 'Last System',
+    },
+  };
+}
