@@ -17,6 +17,14 @@ const FLEETCARRIER_COMMAND = {
   contexts: [0, 1, 2],
 };
 
-const ALL_COMMANDS = [LOGIN_COMMAND, FLEETCARRIER_COMMAND];
+const PROFILE_COMMAND = {
+  name: 'profile',
+  description: 'View your commander profile',
+  type: 1,
+  integration_types: [0, 1],
+  contexts: [0, 1, 2],
+};
+
+const ALL_COMMANDS = [LOGIN_COMMAND, FLEETCARRIER_COMMAND, PROFILE_COMMAND];
 
 InstallGlobalCommands(process.env.APP_ID, ALL_COMMANDS);

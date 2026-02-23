@@ -259,6 +259,16 @@ export async function getFleetCarrier(discordUserId, isBeta = false) {
   return fetchCapi('/fleetcarrier', accessToken, isBeta);
 }
 
+export async function getCommanderProfile(discordUserId, isBeta = false) {
+  const accessToken = await getValidAccessToken(discordUserId);
+  
+  if (!accessToken) {
+    return null;
+  }
+
+  return fetchCapi('/profile', accessToken, isBeta);
+}
+
 export async function isLoggedIn(discordUserId) {
   const [tokenRecord] = await db
     .select()

@@ -4,8 +4,9 @@ import { InteractionType, InteractionResponseType, verifyKeyMiddleware } from 'd
 import {
   VerifyDiscordRequest,
   createFleetCarrierEmbed,
+  createCommanderEmbed,
 } from './utils.js';
-import { handleOAuthCallback, getValidAccessToken, getFleetCarrier, isLoggedIn, createOAuthSession } from './oauth.js';
+import { handleOAuthCallback, getValidAccessToken, getFleetCarrier, getCommanderProfile, isLoggedIn, createOAuthSession } from './oauth.js';
 
 // Create an express app
 const app = express();
@@ -201,6 +202,72 @@ app.post('/edfc/interactions', async function (req, res) {
         });
       }
     }
+
+    if (name === 'profile') {
+      const userLoggedIn = await isLoggedIn(discordUserId);
+
+      if (!userLoggedIn) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: 'You need to login first! Use `/login` to link your Frontier account.',
+            flags: 64,
+          },
+        });
+      }
+
+      try {
+        const profile = await getCommanderProfile(discordUserId);
+
+        if (!profile || !profile.commander) {
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: {
+              content: 'Unable to fetch commander profile. Please try again.',
+              flags: 64,
+            },
+          });
+        }
+
+        const commanderEmbed = createCommanderEmbed(profile.commander);
+        const interactionContext = req.body.context;
+
+        let payloadData = {
+          embeds: [commanderEmbed],
+        };
+
+        if (interactionContext !== 1) {
+          payloadData.flags = 64;
+          payloadData.components = [
+            {
+              type: 1,
+              components: [
+                {
+                  type: 2,
+                  label: 'Share Profile',
+                  custom_id: 'share_profile',
+                  style: 2,
+                },
+              ],
+            },
+          ];
+        }
+
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: payloadData,
+        });
+      } catch (error) {
+        console.error('Profile error:', error);
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: `Error fetching profile: ${error.message}`,
+            flags: 64,
+          },
+        });
+      }
+    }
   }
 
   if (type === InteractionType.MESSAGE_COMPONENT) {
@@ -237,6 +304,49 @@ app.post('/edfc/interactions', async function (req, res) {
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
           data: {
             embeds: [fcEmbed],
+          },
+        });
+      } catch (error) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: `Error: ${error.message}`,
+          },
+        });
+      }
+    }
+
+    if (customId === 'share_profile') {
+      const userLoggedIn = await isLoggedIn(discordUserId);
+
+      if (!userLoggedIn) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: 'You need to login first! Use `/login` to link your Frontier account.',
+            flags: 64,
+          },
+        });
+      }
+
+      try {
+        const profile = await getCommanderProfile(discordUserId);
+
+        if (!profile || !profile.commander) {
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: {
+              content: 'Unable to fetch commander profile.',
+            },
+          });
+        }
+
+        const commanderEmbed = createCommanderEmbed(profile.commander);
+
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            embeds: [commanderEmbed],
           },
         });
       } catch (error) {

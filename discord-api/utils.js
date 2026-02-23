@@ -171,3 +171,52 @@ export function createFleetCarrierEmbed(fc) {
     },
   };
 }
+
+export function createCommanderEmbed(commander) {
+  const formatCredits = (amount) => {
+    return Number(amount).toLocaleString();
+  };
+
+  const statusColor = commander.alive ? 0x22c55e : 0xef4444;
+
+  return {
+    type: 'rich',
+    title: `CMDR ${commander.name}`,
+    color: statusColor,
+    fields: [
+      {
+        name: 'Credits',
+        value: `${formatCredits(commander.credits)} CR`,
+        inline: true,
+      },
+      {
+        name: 'Debt',
+        value: `${formatCredits(commander.debt)} CR`,
+        inline: true,
+      },
+      {
+        name: 'Status',
+        value: commander.docked ? 'Docked' : 'In Space',
+        inline: true,
+      },
+      {
+        name: 'On Foot',
+        value: commander.onfoot ? 'Yes' : 'No',
+        inline: true,
+      },
+      {
+        name: 'Alive',
+        value: commander.alive ? 'Yes' : 'No',
+        inline: true,
+      },
+      {
+        name: 'Ship ID',
+        value: commander.currentShipId?.toString() || 'N/A',
+        inline: true,
+      },
+    ],
+    footer: {
+      text: 'Commander Profile',
+    },
+  };
+}
