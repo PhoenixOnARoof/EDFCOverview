@@ -9,7 +9,7 @@ const { v4: uuidv4 } = require('uuid');
 const open = require('open');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8087;
 
 app.use(cors());
 app.use(express.json());
