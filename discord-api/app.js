@@ -12,10 +12,10 @@ import { getFakeProfile, getWikiItem } from './game.js';
 const app = express();
 // Get port, or default to 3000
 const PORT = process.env.PORT || 8087;
-app.use((req, res, next) => {
-  console.log(req, res);
-  next();
-});
+// app.use((req, res, next) => {
+//   console.log(req, res);
+//   next();
+// });
 // Parse request body and verifies incoming requests using discord-interactions package
 app.use(verifyKeyMiddleware(process.env.PUBLIC_KEY));
 
