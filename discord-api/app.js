@@ -89,9 +89,9 @@ app.use(verifyKeyMiddleware(process.env.PUBLIC_KEY));
 
 app.post('/edfc/interactions', async function (req, res) {
   const { type, data } = req.body;
-  const discordUserId = req.body.user?.id;
+  const discordUserId = req.body.user?.id || req.body.member?.user?.id;
 
-  console.log(type, data);
+  console.log(type, data, { discordUserId });
 
   if (type === InteractionType.PING) {
     return res.send({ type: InteractionResponseType.PONG });
