@@ -36,6 +36,8 @@ export async function DiscordRequest(endpoint, options) {
     console.log(res.status);
     throw new Error(JSON.stringify(data));
   }
+  // Log Response
+  console.log(res);
   // return original response
   return res;
 }
