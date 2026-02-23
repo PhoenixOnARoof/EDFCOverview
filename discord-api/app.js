@@ -19,8 +19,12 @@ app.use(verifyKeyMiddleware(process.env.PUBLIC_KEY));
  * Interactions endpoint URL where Discord will send HTTP requests
  */
 app.post('/interactions', async function (req, res) {
+  
   // Interaction type and data
   const { type, data } = req.body;
+
+  // Logging
+  console.log(type, data);
 
   /**
    * Handle verification requests
