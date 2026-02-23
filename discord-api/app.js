@@ -12,6 +12,7 @@ import {
   createSquadronEmbed,
   createStarportEmbed,
   createLastSystemEmbed,
+  createSuitEmbed,
 } from './utils.js';
 import { handleOAuthCallback, getValidAccessToken, getFleetCarrier, getCommanderProfile, getMarket, getShipyard, getCommunityGoals, getJournal, isLoggedIn, createOAuthSession, revokeOAuthToken } from './oauth.js';
 
@@ -327,13 +328,32 @@ app.post('/edfc/interactions', async function (req, res) {
         }
 
         const marketEmbed = createMarketEmbed(market);
+        const interactionContext = req.body.context;
+
+        let payloadData = {
+          embeds: [marketEmbed],
+        };
+
+        if (interactionContext !== 1) {
+          payloadData.flags = 64;
+          payloadData.components = [
+            {
+              type: 1,
+              components: [
+                {
+                  type: 2,
+                  label: 'Share Market',
+                  custom_id: 'share_market',
+                  style: 2,
+                },
+              ],
+            },
+          ];
+        }
 
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: {
-            embeds: [marketEmbed],
-            flags: 64,
-          },
+          data: payloadData,
         });
       } catch (error) {
         console.error('Market error:', error);
@@ -374,13 +394,32 @@ app.post('/edfc/interactions', async function (req, res) {
         }
 
         const shipyardEmbed = createShipyardEmbed(shipyard);
+        const interactionContext = req.body.context;
+
+        let payloadData = {
+          embeds: [shipyardEmbed],
+        };
+
+        if (interactionContext !== 1) {
+          payloadData.flags = 64;
+          payloadData.components = [
+            {
+              type: 1,
+              components: [
+                {
+                  type: 2,
+                  label: 'Share Shipyard',
+                  custom_id: 'share_shipyard',
+                  style: 2,
+                },
+              ],
+            },
+          ];
+        }
 
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: {
-            embeds: [shipyardEmbed],
-            flags: 64,
-          },
+          data: payloadData,
         });
       } catch (error) {
         console.error('Shipyard error:', error);
@@ -421,13 +460,32 @@ app.post('/edfc/interactions', async function (req, res) {
         }
 
         const goalsEmbed = createCommunityGoalsEmbed(goals);
+        const interactionContext = req.body.context;
+
+        let payloadData = {
+          embeds: [goalsEmbed],
+        };
+
+        if (interactionContext !== 1) {
+          payloadData.flags = 64;
+          payloadData.components = [
+            {
+              type: 1,
+              components: [
+                {
+                  type: 2,
+                  label: 'Share Community Goals',
+                  custom_id: 'share_communitygoals',
+                  style: 2,
+                },
+              ],
+            },
+          ];
+        }
 
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: {
-            embeds: [goalsEmbed],
-            flags: 64,
-          },
+          data: payloadData,
         });
       } catch (error) {
         console.error('Community goals error:', error);
@@ -515,13 +573,32 @@ app.post('/edfc/interactions', async function (req, res) {
         }
 
         const shipsEmbed = createShipsEmbed(profile);
+        const interactionContext = req.body.context;
+
+        let payloadData = {
+          embeds: [shipsEmbed],
+        };
+
+        if (interactionContext !== 1) {
+          payloadData.flags = 64;
+          payloadData.components = [
+            {
+              type: 1,
+              components: [
+                {
+                  type: 2,
+                  label: 'Share Ships',
+                  custom_id: 'share_ships',
+                  style: 2,
+                },
+              ],
+            },
+          ];
+        }
 
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: {
-            embeds: [shipsEmbed],
-            flags: 64,
-          },
+          data: payloadData,
         });
       } catch (error) {
         console.error('Ships error:', error);
@@ -562,13 +639,32 @@ app.post('/edfc/interactions', async function (req, res) {
         }
 
         const squadronEmbed = createSquadronEmbed(profile);
+        const interactionContext = req.body.context;
+
+        let payloadData = {
+          embeds: [squadronEmbed],
+        };
+
+        if (interactionContext !== 1) {
+          payloadData.flags = 64;
+          payloadData.components = [
+            {
+              type: 1,
+              components: [
+                {
+                  type: 2,
+                  label: 'Share Squadron',
+                  custom_id: 'share_squadron',
+                  style: 2,
+                },
+              ],
+            },
+          ];
+        }
 
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: {
-            embeds: [squadronEmbed],
-            flags: 64,
-          },
+          data: payloadData,
         });
       } catch (error) {
         console.error('Squadron error:', error);
@@ -609,13 +705,32 @@ app.post('/edfc/interactions', async function (req, res) {
         }
 
         const starportEmbed = createStarportEmbed(profile);
+        const interactionContext = req.body.context;
+
+        let payloadData = {
+          embeds: [starportEmbed],
+        };
+
+        if (interactionContext !== 1) {
+          payloadData.flags = 64;
+          payloadData.components = [
+            {
+              type: 1,
+              components: [
+                {
+                  type: 2,
+                  label: 'Share Starport',
+                  custom_id: 'share_laststarport',
+                  style: 2,
+                },
+              ],
+            },
+          ];
+        }
 
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: {
-            embeds: [starportEmbed],
-            flags: 64,
-          },
+          data: payloadData,
         });
       } catch (error) {
         console.error('Starport error:', error);
@@ -656,13 +771,32 @@ app.post('/edfc/interactions', async function (req, res) {
         }
 
         const systemEmbed = createLastSystemEmbed(profile);
+        const interactionContext = req.body.context;
+
+        let payloadData = {
+          embeds: [systemEmbed],
+        };
+
+        if (interactionContext !== 1) {
+          payloadData.flags = 64;
+          payloadData.components = [
+            {
+              type: 1,
+              components: [
+                {
+                  type: 2,
+                  label: 'Share System',
+                  custom_id: 'share_lastsystem',
+                  style: 2,
+                },
+              ],
+            },
+          ];
+        }
 
         return res.send({
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: {
-            embeds: [systemEmbed],
-            flags: 64,
-          },
+          data: payloadData,
         });
       } catch (error) {
         console.error('Last system error:', error);
@@ -670,6 +804,72 @@ app.post('/edfc/interactions', async function (req, res) {
           type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
           data: {
             content: `Error fetching system: ${error.message}`,
+            flags: 64,
+          },
+        });
+      }
+    }
+
+    if (name === 'suit') {
+      const userLoggedIn = await isLoggedIn(discordUserId);
+
+      if (!userLoggedIn) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: 'You need to login first! Use `/login` to link your Frontier account.',
+            flags: 64,
+          },
+        });
+      }
+
+      try {
+        const profile = await getCommanderProfile(discordUserId);
+
+        if (!profile || !profile.commander) {
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: {
+              content: 'Unable to fetch suit data. Please try again.',
+              flags: 64,
+            },
+          });
+        }
+
+        const suitEmbed = createSuitEmbed(profile);
+        const interactionContext = req.body.context;
+
+        let payloadData = {
+          embeds: [suitEmbed],
+        };
+
+        if (interactionContext !== 1) {
+          payloadData.flags = 64;
+          payloadData.components = [
+            {
+              type: 1,
+              components: [
+                {
+                  type: 2,
+                  label: 'Share Suit',
+                  custom_id: 'share_suit',
+                  style: 2,
+                },
+              ],
+            },
+          ];
+        }
+
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: payloadData,
+        });
+      } catch (error) {
+        console.error('Suit error:', error);
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: `Error fetching suit: ${error.message}`,
             flags: 64,
           },
         });
@@ -763,6 +963,158 @@ app.post('/edfc/interactions', async function (req, res) {
             content: `Error: ${error.message}`,
           },
         });
+      }
+    }
+
+    if (customId === 'share_market') {
+      const userLoggedIn = await isLoggedIn(discordUserId);
+      if (!userLoggedIn) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: 'You need to login first!', flags: 64 },
+        });
+      }
+      try {
+        const market = await getMarket(discordUserId);
+        if (!market) {
+          return res.send({ type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: { content: 'Unable to fetch market data.' } });
+        }
+        return res.send({ type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: { embeds: [createMarketEmbed(market)] } });
+      } catch (error) {
+        return res.send({ type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: { content: `Error: ${error.message}` } });
+      }
+    }
+
+    if (customId === 'share_shipyard') {
+      const userLoggedIn = await isLoggedIn(discordUserId);
+      if (!userLoggedIn) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: 'You need to login first!', flags: 64 },
+        });
+      }
+      try {
+        const shipyard = await getShipyard(discordUserId);
+        if (!shipyard) {
+          return res.send({ type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: { content: 'Unable to fetch shipyard data.' } });
+        }
+        return res.send({ type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: { embeds: [createShipyardEmbed(shipyard)] } });
+      } catch (error) {
+        return res.send({ type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: { content: `Error: ${error.message}` } });
+      }
+    }
+
+    if (customId === 'share_communitygoals') {
+      const userLoggedIn = await isLoggedIn(discordUserId);
+      if (!userLoggedIn) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: 'You need to login first!', flags: 64 },
+        });
+      }
+      try {
+        const goals = await getCommunityGoals(discordUserId);
+        if (!goals) {
+          return res.send({ type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: { content: 'Unable to fetch community goals.' } });
+        }
+        return res.send({ type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: { embeds: [createCommunityGoalsEmbed(goals)] } });
+      } catch (error) {
+        return res.send({ type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: { content: `Error: ${error.message}` } });
+      }
+    }
+
+    if (customId === 'share_ships') {
+      const userLoggedIn = await isLoggedIn(discordUserId);
+      if (!userLoggedIn) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: 'You need to login first!', flags: 64 },
+        });
+      }
+      try {
+        const profile = await getCommanderProfile(discordUserId);
+        if (!profile || !profile.commander) {
+          return res.send({ type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: { content: 'Unable to fetch ships data.' } });
+        }
+        return res.send({ type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: { embeds: [createShipsEmbed(profile)] } });
+      } catch (error) {
+        return res.send({ type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: { content: `Error: ${error.message}` } });
+      }
+    }
+
+    if (customId === 'share_squadron') {
+      const userLoggedIn = await isLoggedIn(discordUserId);
+      if (!userLoggedIn) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: 'You need to login first!', flags: 64 },
+        });
+      }
+      try {
+        const profile = await getCommanderProfile(discordUserId);
+        if (!profile || !profile.commander) {
+          return res.send({ type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: { content: 'Unable to fetch squadron data.' } });
+        }
+        return res.send({ type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: { embeds: [createSquadronEmbed(profile)] } });
+      } catch (error) {
+        return res.send({ type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: { content: `Error: ${error.message}` } });
+      }
+    }
+
+    if (customId === 'share_laststarport') {
+      const userLoggedIn = await isLoggedIn(discordUserId);
+      if (!userLoggedIn) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: 'You need to login first!', flags: 64 },
+        });
+      }
+      try {
+        const profile = await getCommanderProfile(discordUserId);
+        if (!profile || !profile.commander) {
+          return res.send({ type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: { content: 'Unable to fetch starport data.' } });
+        }
+        return res.send({ type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: { embeds: [createStarportEmbed(profile)] } });
+      } catch (error) {
+        return res.send({ type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: { content: `Error: ${error.message}` } });
+      }
+    }
+
+    if (customId === 'share_lastsystem') {
+      const userLoggedIn = await isLoggedIn(discordUserId);
+      if (!userLoggedIn) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: 'You need to login first!', flags: 64 },
+        });
+      }
+      try {
+        const profile = await getCommanderProfile(discordUserId);
+        if (!profile || !profile.commander) {
+          return res.send({ type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: { content: 'Unable to fetch system data.' } });
+        }
+        return res.send({ type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: { embeds: [createLastSystemEmbed(profile)] } });
+      } catch (error) {
+        return res.send({ type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: { content: `Error: ${error.message}` } });
+      }
+    }
+
+    if (customId === 'share_suit') {
+      const userLoggedIn = await isLoggedIn(discordUserId);
+      if (!userLoggedIn) {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: { content: 'You need to login first!', flags: 64 },
+        });
+      }
+      try {
+        const profile = await getCommanderProfile(discordUserId);
+        if (!profile || !profile.commander) {
+          return res.send({ type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: { content: 'Unable to fetch suit data.' } });
+        }
+        return res.send({ type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: { embeds: [createSuitEmbed(profile)] } });
+      } catch (error) {
+        return res.send({ type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: { content: `Error: ${error.message}` } });
       }
     }
   }

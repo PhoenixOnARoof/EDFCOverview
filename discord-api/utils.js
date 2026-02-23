@@ -119,6 +119,19 @@ export function createPlayerEmbed(profile) {
   };
 }
 
+export function hexToString(hex) {
+  if (!hex) return null;
+  try {
+    let str = '';
+    for (let i = 0; i < hex.length; i += 2) {
+      str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+    }
+    return str;
+  } catch {
+    return hex;
+  }
+}
+
 export function createFleetCarrierEmbed(fc) {
   const formatCredits = (amount) => {
     return Number(amount).toLocaleString();
@@ -130,11 +143,18 @@ export function createFleetCarrierEmbed(fc) {
     reserved: 0xf59e0b,
   };
 
+  const vanityName = fc.name?.vanityName ? hexToString(fc.name.vanityName) : null;
+
   return {
     type: 'rich',
     title: `FC ${fc.name.callsign} - ${fc.currentStarSystem}`,
     color: stateColors[fc.state] || 0x6b7280,
     fields: [
+      {
+        name: 'Name',
+        value: vanityName || 'None',
+        inline: true,
+      },
       {
         name: 'Balance',
         value: `${formatCredits(fc.balance)} CR`,
@@ -344,10 +364,16 @@ export function createShipsEmbed(profile) {
     return Number(amount).toLocaleString();
   };
 
+  const formatHealth = (health) => {
+    return `${(health / 10000).toFixed(1)}%`;
+  };
+
   const ships = profile.ships || {};
   const shipEntries = Object.values(ships);
+  const currentShip = profile.ship;
+  const currentShipId = profile.commander.currentShipId;
   
-  if (shipEntries.length === 0) {
+  if (shipEntries.length === 0 && !currentShip) {
     return {
       type: 'rich',
       title: 'Your Ships',
@@ -359,29 +385,47 @@ export function createShipsEmbed(profile) {
     };
   }
 
-  const sortedShips = shipEntries.sort((a, b) => b.value.total - a.value.total);
-
-  const fields = sortedShips.slice(0, 10).map((ship) => {
-    const isCurrentShip = ship.id === profile.commander.currentShipId;
-    const location = ship.starsystem?.name || 'Unknown';
-    const station = ship.station?.name || '';
-    
-    return {
-      name: `${isCurrentShip ? '⭐ ' : ''}${ship.shipName || ship.name} (${ship.shipID || 'N/A'})`,
-      value: `Type: ${ship.name}\nValue: ${formatCredits(ship.value.total)} CR\nLocation: ${location}${station ? ` @ ${station}` : ''}`,
-      inline: true,
-    };
-  });
-
   const totalValue = shipEntries.reduce((sum, ship) => sum + (ship.value?.total || 0), 0);
+
+  const fields = [];
+
+  if (currentShip) {
+    fields.push({
+      name: '⭐ Current Ship',
+      value: `**${currentShip.shipName || currentShip.name}** (${currentShip.shipID || 'N/A'})\n` +
+        `Type: ${currentShip.name}\n` +
+        `Hull: ${formatHealth(currentShip.health?.hull || 0)} | Shields: ${formatHealth(currentShip.health?.shield || 0)}\n` +
+        `Location: ${currentShip.starsystem?.name || 'Unknown'} @ ${currentShip.station?.name || 'N/A'}`,
+      inline: false,
+    });
+  }
+
+  const otherShips = shipEntries.filter(s => s.id !== currentShipId).sort((a, b) => b.value.total - a.value.total);
+  
+  if (otherShips.length > 0) {
+    fields.push({
+      name: 'Other Ships',
+      value: otherShips.slice(0, 15).map(ship => {
+        const value = ship.value || {};
+        return `• ${ship.shipName || ship.name} (${ship.shipID || 'N/A'}) - ${ship.name} | ${formatCredits(value.total)} CR | ${ship.starsystem?.name || 'Unknown'}`;
+      }).join('\n'),
+      inline: false,
+    });
+  }
+
+  fields.push({
+    name: 'Fleet Summary',
+    value: `Total Ships: ${shipEntries.length}\nTotal Value: ${formatCredits(totalValue)} CR`,
+    inline: true,
+  });
 
   return {
     type: 'rich',
-    title: `Your Ships (${shipEntries.length})`,
+    title: `CMDR ${profile.commander.name}'s Fleet`,
     color: 0x10b981,
     fields,
     footer: {
-      text: `Total Fleet Value: ${formatCredits(totalValue)} CR`,
+      text: 'Ships',
     },
   };
 }
@@ -517,6 +561,69 @@ export function createLastSystemEmbed(profile) {
     ],
     footer: {
       text: 'Last System',
+    },
+  };
+}
+
+export function createSuitEmbed(profile) {
+  const suit = profile.suit;
+  const launchBays = profile.launchBays;
+  
+  if (!suit || !suit.name) {
+    return {
+      type: 'rich',
+      title: 'Suit',
+      color: 0x6b7280,
+      description: 'No suit data available',
+      footer: {
+        text: 'Suit',
+      },
+    };
+  }
+
+  const fields = [
+    {
+      name: 'Suit',
+      value: suit.locName || suit.name,
+      inline: true,
+    },
+    {
+      name: 'ID',
+      value: suit.suitId?.toString() || 'N/A',
+      inline: true,
+    },
+  ];
+
+  if (suit.state?.health?.hull) {
+    fields.push({
+      name: 'Health',
+      value: `${(suit.state.health.hull / 10000).toFixed(1)}%`,
+      inline: true,
+    });
+  }
+
+  if (launchBays && Object.keys(launchBays).length > 0) {
+    const srvList = Object.entries(launchBays).map(([slot, data]) => {
+      const subSlot = data.SubSlot;
+      return subSlot ? `${subSlot.locName || subSlot.name} (${subSlot.loadoutName || subSlot.loadout})` : null;
+    }).filter(Boolean);
+
+    if (srvList.length > 0) {
+      fields.push({
+        name: 'SRVs',
+        value: srvList.join('\n'),
+        inline: false,
+      });
+    }
+  }
+
+  return {
+    type: 'rich',
+    title: `Suit: ${suit.locName || suit.name}`,
+    color: 0x14b8a6,
+    fields,
+    footer: {
+      text: 'On Foot',
     },
   };
 }
