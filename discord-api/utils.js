@@ -1,36 +1,17 @@
 import 'dotenv/config';
 import { verifyKey } from 'discord-interactions';
 import { getFakeUsername } from './game.js';
-import nacl from 'tweetnacl';
 
 export function VerifyDiscordRequest(clientKey) {
   return function (req, res, buf) {
-    // const signature = req.get('X-Signature-Ed25519');
-    // const timestamp = req.get('X-Signature-Timestamp');
-
-    console.log('BUFFER');
-    console.log(buf);
-
-    // const isValidRequest = verifyKey(buf, signature, timestamp, clientKey);
-    // if (!isValidRequest) {
-    //   res.status(401).send('Bad request signature');
-    //   throw new Error('Bad request signature');
-    // }
-
     const signature = req.get('X-Signature-Ed25519');
     const timestamp = req.get('X-Signature-Timestamp');
-    console.log(signature, timestamp, clientKey);
 
-    let isVerified;
-    let error;
-    try {
-      return isVerified = nacl.sign.detached.verify(
-        Buffer.from(timestamp + buf),
-        Buffer.from(signature, 'hex'),
-        Buffer.from(clientKey, 'hex')
-      );
-    } catch (e) {
-      error = e;
+    const isVerified = verifyKey(buf, signature, timestamp, clientKey);
+
+    if (!isVerified) {
+      res.status(401).send('Bad request signature');
+      throw new Error('Bad request signature');
     }
   };
 }

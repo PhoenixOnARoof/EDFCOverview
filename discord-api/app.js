@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
-import { InteractionType, InteractionResponseType } from 'discord-interactions';
+import { InteractionType, InteractionResponseType, verifyKeyMiddleware } from 'discord-interactions';
 import {
   VerifyDiscordRequest,
   getServerLeaderboard,
@@ -13,7 +13,7 @@ const app = express();
 // Get port, or default to 3000
 const PORT = process.env.PORT || 8087;
 // Parse request body and verifies incoming requests using discord-interactions package
-app.use(express.json({ verify: VerifyDiscordRequest(process.env.PUBLIC_KEY) }));
+app.use(verifyKeyMiddleware(process.env.PUBLIC_KEY));
 
 /**
  * Interactions endpoint URL where Discord will send HTTP requests
