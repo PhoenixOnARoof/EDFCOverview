@@ -8,31 +8,27 @@ const __dirname = dirname(__filename);
 export async function initializeCommands(client) {
   const commands = [];
 
-  const commandsPath = join(__dirname, 'commands');
-  const commandFolders = readdirSync(commandsPath);
-
-  for (const folder of commandFolders) {
-    const folderPath = join(commandsPath, folder);
-    
-    if (!folder.startsWith('_')) {
-      const commandFiles = readdirSync(folderPath).filter(file => file.endsWith('.js'));
-      
-      for (const file of commandFiles) {
-        const filePath = join(folderPath, file);
-        const command = await import(filePath);
-        
-        if ('data' in command && 'execute' in command) {
-          client.commands.set(command.data.name, command);
-          commands.push(command.data);
-          console.log(`Loaded command: ${command.data.name} (${folder})`);
-        } else {
-          console.warn(`Invalid command at ${filePath}`);
-        }
-      }
-    }
+  const commandsPath = join(__dirname, '_public');
+  
+  if (!readdirSync(commandsPath)) {
+    console.error('No commands directory found');
+    return commands;
   }
 
-  const guildCommandsPath = join(__dirname, '..', 'commands');
+  const commandFiles = readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+
+  for (const file of commandFiles) {
+    const filePath = join(commandsPath, file);
+    const command = await import(filePath);
+    
+    if ('data' in command && 'execute' in command) {
+      client.commands.set(command.data.name, command);
+      commands.push(command.data);
+      console.log(`Loaded command: ${command.data.name}`);
+    } else {
+      console.warn(`Invalid command at ${filePath}`);
+    }
+  }
   
   try {
     await client.application.commands.set(commands);
