@@ -34,15 +34,13 @@ export async function execute(interaction) {
     .setTitle('Linked Frontier Accounts')
     .setDescription(`You have ${accounts.length} account(s) linked`);
 
-  const accountList = accounts.map((account, index) => {
+  const accountList = accounts.map((account) => {
     const isDefault = account.id === defaultAccountId;
-    const label = account.frontierCustomerId 
-      ? `Account ${index + 1} (${account.frontierCustomerId})`
-      : `Account ${index + 1}`;
+    const label = account.cmdrName || account.frontierCustomerId || `Account ${account.id}`;
     return {
       label: label.length > 100 ? label.substring(0, 97) + '...' : label,
       value: account.id.toString(),
-      description: isDefault ? 'Currently default' : null,
+      description: isDefault ? 'Currently default' : (account.frontierCustomerId ? `ID: ${account.frontierCustomerId}` : null),
       default: isDefault,
     };
   });
@@ -133,15 +131,13 @@ export async function handleRemoveAccount(interaction, accountId) {
       .setDescription(`You now have ${accounts.length} account(s) linked.`);
 
     if (accounts.length > 0) {
-      const accountList = accounts.map((account, index) => {
+      const accountList = accounts.map((account) => {
         const isDefault = account.id === defaultAccountId;
-        const label = account.frontierCustomerId 
-          ? `Account ${index + 1} (${account.frontierCustomerId})`
-          : `Account ${index + 1}`;
+        const label = account.cmdrName || account.frontierCustomerId || `Account ${account.id}`;
         return {
           label: label.length > 100 ? label.substring(0, 97) + '...' : label,
           value: account.id.toString(),
-          description: isDefault ? 'Currently default' : null,
+          description: isDefault ? 'Currently default' : (account.frontierCustomerId ? `ID: ${account.frontierCustomerId}` : null),
           default: isDefault,
         };
       });

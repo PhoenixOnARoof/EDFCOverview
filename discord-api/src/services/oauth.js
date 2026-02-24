@@ -127,21 +127,26 @@ export async function handleOAuthCallback(sessionId, code, state) {
   const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000);
 
   let customerId = null;
+  let cmdrName = null;
+  let profileData = null;
+  
   try {
     const profileRes = await fetch('https://companion.orerve.net/profile', {
       headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
     });
     if (profileRes.ok) {
-      const profile = await profileRes.json();
-      customerId = profile.commander?.id?.toString() || null;
+      profileData = await profileRes.json();
+      customerId = profileData.commander?.id?.toString() || null;
+      cmdrName = profileData.commander?.name || null;
     }
   } catch (e) {
-    console.warn('Could not fetch customer ID:', e);
+    console.warn('Could not fetch profile:', e);
   }
 
   const result = await db.insert(discordOAuthTokens).values({
     discordUserId: session.discordUserId,
     frontierCustomerId: customerId,
+    cmdrName: cmdrName,
     accessToken: tokenData.access_token,
     refreshToken: tokenData.refresh_token,
     tokenType: tokenData.token_type,
@@ -172,6 +177,16 @@ export async function handleOAuthCallback(sessionId, code, state) {
   await db
     .delete(discordOAuthSessions)
     .where(eq(discordOAuthSessions.sessionId, sessionId));
+
+  if (profileData) {
+    const cacheKey = `profile:${session.discordUserId}:${newAccountId}:live`;
+    try {
+      const redis = (await import('./cache.js')).default;
+      await redis.setex(cacheKey, 900, JSON.stringify(profileData));
+    } catch (e) {
+      console.warn('Could not cache profile:', e);
+    }
+  }
 
   return { success: true, discordUserId: session.discordUserId, accountId: newAccountId };
 }

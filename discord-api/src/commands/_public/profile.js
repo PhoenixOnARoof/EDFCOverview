@@ -28,14 +28,12 @@ export async function execute(interaction) {
     const accounts = await getUserAccounts(discordUserId);
     const defaultAccountId = await getDefaultAccountId(discordUserId);
 
-    const accountOptions = accounts.map((account, index) => {
-      const label = account.frontierCustomerId 
-        ? `Account ${index + 1} (${account.frontierCustomerId})`
-        : `Account ${index + 1}`;
+    const accountOptions = accounts.map((account) => {
+      const label = account.cmdrName || account.frontierCustomerId || `Account ${account.id}`;
       return {
         label: label.length > 100 ? label.substring(0, 97) + '...' : label,
         value: account.id.toString(),
-        description: account.id === defaultAccountId ? 'Default' : null,
+        description: account.id === defaultAccountId ? 'Default' : (account.frontierCustomerId ? `ID: ${account.frontierCustomerId}` : null),
         default: account.id === defaultAccountId,
       };
     });

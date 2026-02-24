@@ -17,6 +17,7 @@ export const discordOAuthTokens = pgTable('discord_oauth_tokens', {
   id: serial('id').primaryKey(),
   discordUserId: varchar('discord_user_id', { length: 20 }).notNull(),
   frontierCustomerId: varchar('frontier_customer_id', { length: 20 }),
+  cmdrName: varchar('cmdr_name', { length: 100 }),
   accessToken: text('access_token').notNull(),
   refreshToken: text('refresh_token').notNull(),
   tokenType: varchar('token_type', { length: 20 }).notNull(),
