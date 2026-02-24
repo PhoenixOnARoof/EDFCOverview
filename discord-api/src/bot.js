@@ -113,6 +113,19 @@ client.on('ready', async () => {
   await initializeCommands(client);
 });
 
+app.use(verifyKeyMiddleware(process.env.PUBLIC_KEY));
+
+app.post('/edfc/interactions', async function (req, res) {
+
+  const { type, data } = req.body;
+  const discordUserId = req.body.user?.id || req.body.member?.user?.id;
+
+  console.log(type, data, { discordUserId });
+
+  return res.sendStatus(200).send('OK');
+
+});
+
 client.on('interactionCreate', async (interaction) => {
 
   console.log(interaction.commandName);
