@@ -21,7 +21,7 @@ export const discordOAuthTokens = pgTable('discord_oauth_tokens', {
   carrierName: varchar('carrier_name', { length: 30 }),
   carrierId: varchar('carrier_id', { length: 20 }),
   accessToken: text('access_token').notNull(),
-  refreshToken: text('refresh_token').notNull(),
+  refreshToken: text('refresh_token'),
   tokenType: varchar('token_type', { length: 20 }).notNull(),
   expiresAt: timestamp('expires_at').notNull(),
   scope: text('scope'),
