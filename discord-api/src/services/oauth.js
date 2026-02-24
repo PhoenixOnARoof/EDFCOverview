@@ -7,6 +7,14 @@ const FRONTIER_AUTH_SERVER = 'https://auth.frontierstore.net';
 const FRONTIER_CLIENT_ID = process.env.FRONTIER_CLIENT_ID;
 const BASE_URL = process.env.BASE_URL || 'https://pokedi.xyz/edfc';
 
+function toBigInt(id) {
+  return typeof id === 'bigint' ? id : BigInt(id);
+}
+
+function toNumber(id) {
+  return typeof id === 'bigint' ? Number(id) : Number(id);
+}
+
 function generateCodeVerifier() {
   const buffer = Buffer.alloc(32);
   for (let i = 0; i < 32; i++) {
@@ -78,6 +86,7 @@ async function refreshAccessToken(refreshToken) {
 }
 
 export async function createOAuthSession(discordUserId, redirectUri = null) {
+  const discordId = toBigInt(discordUserId);
   const state = generateState();
   const codeVerifier = generateCodeVerifier();
   const codeChallenge = base64UrlEncode(sha256(codeVerifier));
@@ -88,7 +97,7 @@ export async function createOAuthSession(discordUserId, redirectUri = null) {
 
   await db.insert(discordOAuthSessions).values({
     sessionId,
-    discordUserId,
+    discordUserId: discordId,
     state,
     redirectUri: finalRedirectUri,
     codeVerifier,
@@ -223,18 +232,20 @@ export async function handleOAuthCallback(sessionId, code, state) {
 }
 
 export async function getUserAccounts(discordUserId) {
+  const discordId = toBigInt(discordUserId);
   return db
     .select()
     .from(discordOAuthTokens)
-    .where(eq(discordOAuthTokens.discordUserId, discordUserId))
+    .where(eq(discordOAuthTokens.discordUserId, discordId))
     .orderBy(discordOAuthTokens.createdAt);
 }
 
 export async function getDefaultAccountId(discordUserId) {
+  const discordId = toBigInt(discordUserId);
   const [settings] = await db
     .select()
     .from(discordUserSettings)
-    .where(eq(discordUserSettings.discordUserId, discordUserId))
+    .where(eq(discordUserSettings.discordUserId, discordId))
     .limit(1);
 
   if (settings?.defaultAccountId) {
@@ -244,13 +255,14 @@ export async function getDefaultAccountId(discordUserId) {
   const [firstAccount] = await db
     .select()
     .from(discordOAuthTokens)
-    .where(eq(discordOAuthTokens.discordUserId, discordUserId))
+    .where(eq(discordOAuthTokens.discordUserId, discordId))
     .limit(1);
 
   return firstAccount?.id || null;
 }
 
 export async function setDefaultAccount(discordUserId, accountId) {
+  const discordId = toBigInt(discordUserId);
   const accounts = await getUserAccounts(discordUserId);
   const validIds = accounts.map(a => a.id);
   
@@ -261,17 +273,17 @@ export async function setDefaultAccount(discordUserId, accountId) {
   const [settings] = await db
     .select()
     .from(discordUserSettings)
-    .where(eq(discordUserSettings.discordUserId, discordUserId))
+    .where(eq(discordUserSettings.discordUserId, discordId))
     .limit(1);
 
   if (settings) {
     await db
       .update(discordUserSettings)
       .set({ defaultAccountId: accountId, updatedAt: new Date() })
-      .where(eq(discordUserSettings.discordUserId, discordUserId));
+      .where(eq(discordUserSettings.discordUserId, discordId));
   } else {
     await db.insert(discordUserSettings).values({
-      discordUserId,
+      discordUserId: discordId,
       defaultAccountId: accountId,
     });
   }
@@ -280,6 +292,7 @@ export async function setDefaultAccount(discordUserId, accountId) {
 }
 
 export async function removeAccount(discordUserId, accountId) {
+  const discordId = toBigInt(discordUserId);
   const accounts = await getUserAccounts(discordUserId);
   
   if (accounts.length <= 1) {
@@ -290,13 +303,13 @@ export async function removeAccount(discordUserId, accountId) {
     .delete(discordOAuthTokens)
     .where(and(
       eq(discordOAuthTokens.id, accountId),
-      eq(discordOAuthTokens.discordUserId, discordUserId)
+      eq(discordOAuthTokens.discordUserId, discordId)
     ));
 
   const [settings] = await db
     .select()
     .from(discordUserSettings)
-    .where(eq(discordUserSettings.discordUserId, discordUserId))
+    .where(eq(discordUserSettings.discordUserId, discordId))
     .limit(1);
 
   if (settings?.defaultAccountId === accountId) {
@@ -305,12 +318,12 @@ export async function removeAccount(discordUserId, accountId) {
       await db
         .update(discordUserSettings)
         .set({ defaultAccountId: remainingAccounts[0].id, updatedAt: new Date() })
-        .where(eq(discordUserSettings.discordUserId, discordUserId));
+        .where(eq(discordUserSettings.discordUserId, discordId));
     } else {
       await db
         .update(discordUserSettings)
         .set({ defaultAccountId: null, updatedAt: new Date() })
-        .where(eq(discordUserSettings.discordUserId, discordUserId));
+        .where(eq(discordUserSettings.discordUserId, discordId));
     }
   }
 
@@ -392,6 +405,7 @@ export async function getOAuthToken(discordUserId, accountId = null) {
 }
 
 export async function revokeOAuthToken(discordUserId, accountId = null) {
+  const discordId = toBigInt(discordUserId);
   let targetAccountId = accountId;
 
   if (!targetAccountId) {
@@ -407,7 +421,7 @@ export async function revokeOAuthToken(discordUserId, accountId = null) {
     .delete(discordOAuthTokens)
     .where(and(
       eq(discordOAuthTokens.id, targetAccountId),
-      eq(discordOAuthTokens.discordUserId, discordUserId)
+      eq(discordOAuthTokens.discordUserId, discordId)
     ));
 }
 
@@ -568,20 +582,22 @@ export async function getVisitedStars(discordUserId, accountId = null, isBeta = 
 }
 
 export async function isLoggedIn(discordUserId) {
+  const discordId = toBigInt(discordUserId);
   const accounts = await db
     .select()
     .from(discordOAuthTokens)
-    .where(eq(discordOAuthTokens.discordUserId, discordUserId))
+    .where(eq(discordOAuthTokens.discordUserId, discordId))
     .limit(1);
 
   return !!accounts[0];
 }
 
 export async function hasMultipleAccounts(discordUserId) {
+  const discordId = toBigInt(discordUserId);
   const accounts = await db
     .select()
     .from(discordOAuthTokens)
-    .where(eq(discordOAuthTokens.discordUserId, discordUserId));
+    .where(eq(discordOAuthTokens.discordUserId, discordId));
 
   return accounts.length > 1;
 }

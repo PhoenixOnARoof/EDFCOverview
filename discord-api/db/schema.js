@@ -1,8 +1,8 @@
-import { pgTable, varchar, text, timestamp, boolean, integer, index, serial } from 'drizzle-orm/pg-core';
+import { pgTable, varchar, text, timestamp, boolean, integer, index, serial, bigint } from 'drizzle-orm/pg-core';
 
 export const discordOAuthSessions = pgTable('discord_oauth_sessions', {
   sessionId: varchar('session_id', { length: 36 }).primaryKey(),
-  discordUserId: varchar('discord_user_id', { length: 20 }).notNull(),
+  discordUserId: bigint('discord_user_id', { mode: 'number' }).notNull(),
   state: varchar('state', { length: 64 }).notNull(),
   redirectUri: text('redirect_uri').notNull(),
   codeVerifier: text('code_verifier'),
@@ -15,7 +15,7 @@ export const discordOAuthSessions = pgTable('discord_oauth_sessions', {
 
 export const discordOAuthTokens = pgTable('discord_oauth_tokens', {
   id: serial('id').primaryKey(),
-  discordUserId: varchar('discord_user_id', { length: 20 }).notNull(),
+  discordUserId: bigint('discord_user_id', { mode: 'number' }).notNull(),
   frontierCustomerId: varchar('frontier_customer_id', { length: 20 }),
   cmdrName: varchar('cmdr_name', { length: 100 }),
   carrierName: varchar('carrier_name', { length: 20 }),
@@ -33,7 +33,7 @@ export const discordOAuthTokens = pgTable('discord_oauth_tokens', {
 
 export const discordUserSettings = pgTable('discord_user_settings', {
   id: serial('id').primaryKey(),
-  discordUserId: varchar('discord_user_id', { length: 20 }).notNull().unique(),
+  discordUserId: bigint('discord_user_id', { mode: 'number' }).notNull().unique(),
   defaultAccountId: integer('default_account_id'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
