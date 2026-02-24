@@ -23,6 +23,7 @@ import {
   createSuitEmbed 
 } from './utils/embeds.js';
 import express from 'express';
+import { verifyKeyMiddleware } from 'discord-interactions';
 
 export const client = new Client({
   intents: [
