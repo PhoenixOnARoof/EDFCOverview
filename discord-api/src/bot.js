@@ -28,8 +28,9 @@ export const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.DirectMessages,
+    GatewayIntentBits.GuildMessages,
   ],
-  partials: ['CHANNEL', 'DM_USER'],
+  // partials: ['CHANNEL', 'DM_USER'],
 });
 
 const app = express();
