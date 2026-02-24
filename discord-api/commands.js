@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { InstallGlobalCommands } from './utils.js';
+import { ApplicationCommandType, ContextMenuCommandBuilder, InteractionContextType, SlashCommandBuilder } from 'discord.js'
 
 const LOGIN_COMMAND = {
   name: 'login',
@@ -8,6 +9,16 @@ const LOGIN_COMMAND = {
   integration_types: [0, 1],
   contexts: [0, 1, 2],
 };
+
+const ACCOUNTS_COMMAND =
+  // new ContextMenuCommandBuilder()
+  new SlashCommandBuilder()
+    .setName('accounts')
+    .setDescription('View all the accounts linked to your Discord')
+    .setIntegrationTypes(0, 1)
+    .setContexts(InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel)
+// .setType(ApplicationCommandType.User);
+
 
 const FLEETCARRIER_COMMAND = {
   name: 'carrier',

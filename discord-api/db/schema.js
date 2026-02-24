@@ -15,7 +15,8 @@ export const discordOAuthSessions = pgTable('discord_oauth_sessions', {
 
 export const discordOAuthTokens = pgTable('discord_oauth_tokens', {
   id: serial('id').primaryKey(),
-  discordUserId: varchar('discord_user_id', { length: 20 }).notNull().unique(),
+  discordUserId: varchar('discord_user_id', { length: 20 }).notNull(),
+  frontierCustomerId: varchar('frontier_customer_id', { length: 20 }),
   accessToken: text('access_token').notNull(),
   refreshToken: text('refresh_token').notNull(),
   tokenType: varchar('token_type', { length: 20 }).notNull(),
@@ -25,4 +26,14 @@ export const discordOAuthTokens = pgTable('discord_oauth_tokens', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
   discordUserIdIdx: index('idx_discord_oauth_tokens_discord_user_id').on(table.discordUserId),
+}));
+
+export const discordUserSettings = pgTable('discord_user_settings', {
+  id: serial('id').primaryKey(),
+  discordUserId: varchar('discord_user_id', { length: 20 }).notNull().unique(),
+  defaultAccountId: integer('default_account_id'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  discordUserIdIdx: index('idx_discord_user_settings_discord_user_id').on(table.discordUserId),
 }));
