@@ -123,7 +123,7 @@ app.post('/edfc/interactions', async function (req, res) {
 
   console.log(type, data, { discordUserId });
 
-  return res.sendStatus(200).send('OK');
+  return res.sendStatus(200);
 
 });
 
