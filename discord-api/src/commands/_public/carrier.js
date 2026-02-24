@@ -29,7 +29,12 @@ export async function execute(interaction) {
     const defaultAccountId = await getDefaultAccountId(discordUserId);
 
     const accountOptions = accounts.map((account) => {
-      const label = account.cmdrName || account.frontierCustomerId || `Account ${account.id}`;
+      let label = account.cmdrName || `Account ${account.id}`;
+      if (account.carrierName) {
+        label += ` (${account.carrierName})`;
+      } else if (account.carrierId) {
+        label += ` (${account.carrierId})`;
+      }
       return {
         label: label.length > 100 ? label.substring(0, 97) + '...' : label,
         value: account.id.toString(),

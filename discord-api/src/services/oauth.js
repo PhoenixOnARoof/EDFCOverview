@@ -129,6 +129,9 @@ export async function handleOAuthCallback(sessionId, code, state) {
   let customerId = null;
   let cmdrName = null;
   let profileData = null;
+  let carrierData = null;
+  let carrierName = null;
+  let carrierId = null;
   
   try {
     const profileRes = await fetch('https://companion.orerve.net/profile', {
@@ -143,12 +146,30 @@ export async function handleOAuthCallback(sessionId, code, state) {
     console.warn('Could not fetch profile:', e);
   }
 
+  try {
+    const carrierRes = await fetch('https://companion.orerve.net/fleetcarrier', {
+      headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
+    });
+    if (carrierRes.ok) {
+      carrierData = await carrierRes.json();
+      carrierId = carrierData.name?.callsign || null;
+      if (carrierData.name?.vanityName) {
+        const buffer = Buffer.from(carrierData.name.vanityName, 'hex');
+        carrierName = buffer.toString('utf8');
+      }
+    }
+  } catch (e) {
+    console.warn('Could not fetch carrier:', e);
+  }
+
   const result = await db.insert(discordOAuthTokens).values({
     discordUserId: session.discordUserId,
     frontierCustomerId: customerId,
     cmdrName: cmdrName,
+    carrierName: carrierName,
+    carrierId: carrierId,
     accessToken: tokenData.access_token,
-    refreshToken: tokenData.refresh_token,
+    refreshToken: tokenData.refreshToken,
     tokenType: tokenData.token_type,
     expiresAt,
     scope: tokenData.scope,
@@ -185,6 +206,16 @@ export async function handleOAuthCallback(sessionId, code, state) {
       await redis.setex(cacheKey, 900, JSON.stringify(profileData));
     } catch (e) {
       console.warn('Could not cache profile:', e);
+    }
+  }
+
+  if (carrierData) {
+    const cacheKey = `fleetcarrier:${session.discordUserId}:${newAccountId}:live`;
+    try {
+      const redis = (await import('./cache.js')).default;
+      await redis.setex(cacheKey, 900, JSON.stringify(carrierData));
+    } catch (e) {
+      console.warn('Could not cache carrier:', e);
     }
   }
 
@@ -439,7 +470,39 @@ export async function getCommanderProfile(discordUserId, accountId = null, isBet
     if (!accessToken) {
       return null;
     }
-    return fetchCapi('/profile', accessToken, isBeta);
+    const profileData = await fetchCapi('/profile', accessToken, isBeta);
+
+    if (profileData && accountId) {
+      try {
+        const carrierRes = await fetch(`${isBeta ? 'https://pts-companion.orerve.net' : 'https://companion.orerve.net'}/fleetcarrier`, {
+          headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+        if (carrierRes.ok) {
+          const carrierData = await carrierRes.json();
+          let carrierName = null;
+          let carrierId = null;
+          
+          carrierId = carrierData.name?.callsign || null;
+          if (carrierData.name?.vanityName) {
+            const buffer = Buffer.from(carrierData.name.vanityName, 'hex');
+            carrierName = buffer.toString('utf8');
+          }
+
+          await db
+            .update(discordOAuthTokens)
+            .set({ 
+              carrierName: carrierName,
+              carrierId: carrierId,
+              updatedAt: new Date() 
+            })
+            .where(eq(discordOAuthTokens.id, accountId));
+        }
+      } catch (e) {
+        console.warn('Could not update carrier info:', e);
+      }
+    }
+
+    return profileData;
   });
 }
 

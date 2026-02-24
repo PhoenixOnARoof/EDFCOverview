@@ -36,7 +36,12 @@ export async function execute(interaction) {
 
   const accountList = accounts.map((account) => {
     const isDefault = account.id === defaultAccountId;
-    const label = account.cmdrName || account.frontierCustomerId || `Account ${account.id}`;
+    let label = account.cmdrName || `Account ${account.id}`;
+    if (account.carrierName) {
+      label += ` (${account.carrierName})`;
+    } else if (account.carrierId) {
+      label += ` (${account.carrierId})`;
+    }
     return {
       label: label.length > 100 ? label.substring(0, 97) + '...' : label,
       value: account.id.toString(),
@@ -133,7 +138,12 @@ export async function handleRemoveAccount(interaction, accountId) {
     if (accounts.length > 0) {
       const accountList = accounts.map((account) => {
         const isDefault = account.id === defaultAccountId;
-        const label = account.cmdrName || account.frontierCustomerId || `Account ${account.id}`;
+        let label = account.cmdrName || `Account ${account.id}`;
+        if (account.carrierName) {
+          label += ` (${account.carrierName})`;
+        } else if (account.carrierId) {
+          label += ` (${account.carrierId})`;
+        }
         return {
           label: label.length > 100 ? label.substring(0, 97) + '...' : label,
           value: account.id.toString(),
