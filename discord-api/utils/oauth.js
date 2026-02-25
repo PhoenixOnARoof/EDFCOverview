@@ -13,7 +13,9 @@ function base64UrlEncode(buffer) {
 }
 
 import crypto from 'crypto';
-import { sessions } from '../db/schema.js';
+import { frontier, sessions, tokens, users } from '../db/schema.js';
+import { eq } from 'drizzle-orm';
+import { carrier, profile } from './cAPIs.js';
 
 function sha256(buffer) {
     return crypto.createHash('sha256').update(buffer).digest();
@@ -55,4 +57,91 @@ export async function createOAuthSession(user_id, redirect_uri = null) {
 
     return { sessionId, authUrl };
 
+}
+
+export async function handleOAuthCallback(sessionId, code, state) {
+
+    const [session] = await db
+        .select()
+        .from(sessions)
+        .where(eq(sessions.session_id, sessionId))
+        .limit(1);
+
+    if (!session) {
+        throw new Error('Invalid Session');
+    }
+
+    if (session.state != state) {
+        throw new Error('State mismatch - Possible CSRF attack');
+    }
+
+    const tokenData = await exchangeCodeForToken(code, session.codeVerifier, session.redirectUri);
+
+    const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000);
+
+    const profileData = profile(tokenData.access_token);
+
+    const access_result = await db.insert(tokens).values({
+        user_id: session.user_id,
+        frontier_id: profileData.commander?.id,
+        accessToken: tokenData.access_token,
+        refreshToken: tokenData.refreshToken,
+        tokenType: tokenData.token_type,
+        expiresAt,
+        scope: tokenData.scope
+    }).onConflictDoUpdate({
+        accessToken: tokenData.access_token,
+        refreshToken: tokenData.refreshToken,
+        tokenType: tokenData.token_type,
+        expiresAt,
+        scope: tokenData.scope
+    });
+
+    const carrierData = carrier(tokenData.accessToken);
+
+    const cmdr_result = await db.insert(frontier).values({
+        id: profileData.commander?.id,
+        cmdrName: profileData.commander?.name,
+        carrierName: carrierData.name?.name,
+        shipName: profileData.ship?.shipName,
+        credits: profileData.commander?.credits
+    }).onConflictDoUpdate({
+        cmdrName: profileData.commander?.name,
+        carrierName: carrierData.name?.name,
+        shipName: profileData.ship?.shipName,
+        credits: profileData.commander?.credits
+    });
+
+    // Set this account as the new Default
+    await db
+        .update(users)
+        .set({
+            selectedFrontierId: profileData.commander?.id
+        });
+
+    return { cmdr_result, access_result };
+
+}
+
+async function exchangeCodeForToken(code, codeVerifier, redirectUri) {
+    const response = await fetch(`${FRONTIER_AUTH_SERVER}/token`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+            grant_type: 'authorization_code',
+            client_id: FRONTIER_CLIENT_ID,
+            code_verifier: codeVerifier,
+            code,
+            redirect_uri: redirectUri
+        })
+    });
+
+    if (!response.ok) {
+        const error = await response.text();
+        throw new Error('Token Exchange failed: ' + error);
+    }
+
+    return response.json();
 }
