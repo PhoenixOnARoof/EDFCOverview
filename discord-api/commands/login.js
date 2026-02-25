@@ -6,6 +6,6 @@ export async function execute(interaction) {
 
     const id = interaction.user.id;
 
-    return interaction.reply('Response: ' + id);
+    return interaction.reply({ content: 'Response: ' + id, flags: InteractionResponseFlags.EPHEMERAL });
 
 }
