@@ -97,7 +97,7 @@ export async function handleOAuthCallback(sessionId, code, state) {
             expiresAt,
             scope: tokenData.scope
         },
-        setWhere: {
+        targetWhere: {
             user_id: session.user_id,
             frontier_id: profileData.commander?.id,
         }
@@ -118,7 +118,7 @@ export async function handleOAuthCallback(sessionId, code, state) {
             shipName: profileData.ship?.shipName,
             credits: profileData.commander?.credits
         },
-        setWhere: {
+        targetWhere: {
             id: profileData.commander?.id,
             cmdrName: profileData.commander?.name,
         }
