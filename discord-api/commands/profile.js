@@ -44,7 +44,7 @@ export async function execute(interaction) {
             .setTitle('Error')
             .setDescription(`Error fetching profile: ${error.message}`);
 
-        return interaction.editReply({ embeds: [embed], components: [] });
+        return interaction.editReply({ embeds: [embed], components: [], flags: InteractionResponseFlags.EPHEMERAL });
 
     }
 
