@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import db from "../db.js";
+import db from "../db/index.js";
 import { frontier, users } from "../db/schema.js";
 import { createCommand } from "../utils/createCommand.js";
 import { InteractionResponseFlags } from "discord-interactions";
