@@ -33,7 +33,7 @@ client.on('interactionCreate', async (interaction) => {
 
         try {
             await command.execute(interaction);
-        } catch (e) {
+        } catch (error) {
             console.error('Command Error', error);
 
             const embed = new EmbedBuilder()
