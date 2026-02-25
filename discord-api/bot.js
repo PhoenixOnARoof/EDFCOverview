@@ -1,6 +1,7 @@
 import 'dotenv/config';
 
 import { Client, GatewayIntentBits } from "discord.js";
+import { initializeCommands } from './utils/initializeCommands';
 
 export const client = new Client({
     intents: [
@@ -11,8 +12,11 @@ export const client = new Client({
     ]
 });
 
+client.commands = new Map();
+
 client.on('ready', async () => {
     console.log(`${client.user.tag} ready to fly`);
+    await initializeCommands(client);
 });
 
 client.on('interactionCreate', async (interaction) => {
