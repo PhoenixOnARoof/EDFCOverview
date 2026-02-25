@@ -2,6 +2,8 @@ import { InteractionResponseFlags } from "discord-interactions";
 import { createCommand } from "../utils/createCommand.js";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { createOAuthSession } from "../utils/oauth.js";
+import db from "../db/index.js";
+import { users } from "../db/schema.js";
 
 export const data = createCommand('login', 'Link your Frontier account with Discord');
 
@@ -23,6 +25,11 @@ export async function execute(interaction) {
                 .setStyle(ButtonStyle.Link)
                 .setURL(authUrl)
         );
+
+    // Let's make the User because curiousity killed the cat :3
+    await db.insert(users).values({
+        id
+    }).onConflictDoNothing();
 
     return interaction.reply({ embeds: [embed], components: [button], flags: InteractionResponseFlags.EPHEMERAL });
 
