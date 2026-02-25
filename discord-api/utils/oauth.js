@@ -1,8 +1,8 @@
 import db from '../db/index.js';
 
-function generateBuffer(i = 32) {
+function generateBuffer(j = 32) {
     const buffer = Buffer.alloc(i);
-    for (let i = 0; i < i; i++) {
+    for (let i = 0; i < j; i++) {
         buffer[i] = Math.floor(Math.random() * 256);
     }
     return buffer.toString('base64url').replace(/=/g, '');
