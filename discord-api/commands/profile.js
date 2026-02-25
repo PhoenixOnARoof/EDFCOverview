@@ -28,9 +28,11 @@ export async function execute(interaction) {
 
         const [account] = await db.select().from(frontier).where(eq(frontier.id, user.selectedFrontierId));
 
+        const embed = new EmbedBuilder().setTitle(account.cmdrName).setDescription('Master of ' + account.carrierName).setFooter({ text: 'Ship: ' + account.shipName }).addFields({ name: 'Credits', value: account.credits });
+
         return await interaction.editReply({
             embeds: [
-                new EmbedBuilder().setTitle(account.cmdrName).setDescription('Master of ' + account.carrierName).addFields({ name: 'Credits', value: account.credits }).setFooter({ text: 'Ship: ' + account.shipName })
+                embed
             ],
             flags: InteractionResponseFlags.EPHEMERAL
         })
