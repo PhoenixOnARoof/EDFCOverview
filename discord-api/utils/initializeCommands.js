@@ -7,7 +7,7 @@ const __dirname = dirname(__filename);
 
 export async function initializeCommands(client) {
 
-    const commandsPath = join(__dirname, 'commands');
+    const commandsPath = join(__dirname, '../commands');
 
     if (!readdirSync(commandsPath)) {
         console.error('No Commands in the Wing, Major');
