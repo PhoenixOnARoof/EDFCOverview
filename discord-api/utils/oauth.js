@@ -25,8 +25,8 @@ const BASE_URL = process.env.BASE_URL;
 
 console.log('OAuth BASEURL', BASE_URL);
 
-export async function createOAuthSession(id, redirect_uri = null) {
-    const id = BigInt(id);
+export async function createOAuthSession(user_id, redirect_uri = null) {
+    const id = BigInt(user_id);
     const state = generateBuffer();
     const codeVerifier = generateBuffer();
     const codeChallenge = base64UrlEncode(sha256(codeVerifier));
