@@ -1,6 +1,4 @@
-import { integer, timestamp } from "drizzle-orm/gel-core";
-import { varchar } from "drizzle-orm/mysql-core";
-import { bigint, boolean, pgTable, primaryKey, text } from "drizzle-orm/pg-core";
+import { integer, timestamp, varchar, bigint, boolean, pgTable, primaryKey, text } from "drizzle-orm/pg-core";
 
 export const users = pgTable('users', {
     id: bigint('id').primaryKey(),
@@ -52,3 +50,7 @@ export const frontier = pgTable('frontier', {
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
+
+public | discord_oauth_sessions | table | root | permanent | heap | 16 kB |
+    public | discord_oauth_tokens | table | root | permanent | heap | 16 kB |
+        public | discord_user_settings
