@@ -26,7 +26,7 @@ export async function execute(interaction) {
 
     try {
 
-        const [account] = await db.select().from(frontier).where(eq(frontier.id, users.selectedFrontierId));
+        const [account] = await db.select().from(frontier).where(eq(frontier.id, user.selectedFrontierId));
 
         return await interaction.editReply({
             embeds: [
