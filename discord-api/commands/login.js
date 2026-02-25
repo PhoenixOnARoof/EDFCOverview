@@ -11,6 +11,11 @@ export async function execute(interaction) {
 
     const id = interaction.user.id;
 
+    // Let's make the User because curiousity killed the cat :3
+    await db.insert(users).values({
+        id
+    }).onConflictDoNothing();
+
     const { authUrl } = await createOAuthSession(id);
 
     const embed = new EmbedBuilder()
@@ -25,11 +30,6 @@ export async function execute(interaction) {
                 .setStyle(ButtonStyle.Link)
                 .setURL(authUrl)
         );
-
-    // Let's make the User because curiousity killed the cat :3
-    await db.insert(users).values({
-        id
-    }).onConflictDoNothing();
 
     return interaction.reply({ embeds: [embed], components: [button], flags: InteractionResponseFlags.EPHEMERAL });
 
