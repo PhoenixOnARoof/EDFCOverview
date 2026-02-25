@@ -81,8 +81,11 @@ export async function handleOAuthCallback(sessionId, code, state) {
 
     const profileData = await profile(tokenData.access_token);
 
+    // What on God's sweet Earth is going on here?
+    console.log(session);
+
     const [access_result] = await db.insert(tokens).values({
-        user_id: BigInt(session.user_id),
+        user_id: session.user_id,
         frontier_id: profileData.commander?.id,
         accessToken: tokenData.access_token,
         refreshToken: tokenData.refreshToken,
@@ -123,7 +126,7 @@ export async function handleOAuthCallback(sessionId, code, state) {
         .update(users)
         .set({
             selectedFrontierId: profileData.commander?.id
-        }).where(eq(users.id, BigInt(session.user_id)));
+        }).where(eq(users.id, session.user_id));
 
     return { cmdr_result, access_result };
 
