@@ -1,7 +1,7 @@
 import { integer, timestamp, varchar, bigint, boolean, pgTable, primaryKey, text } from "drizzle-orm/pg-core";
 
 export const users = pgTable('users', {
-    id: bigint('id', { mode: 'number' }).primaryKey(),
+    id: bigint('id', { mode: 'bigint' }).primaryKey(),
     selectedFrontierId: integer('selected_frontier_id'),
     likesFlexing: boolean('likes_flexing').default(false), // Easter Egg owo)
     createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -10,7 +10,7 @@ export const users = pgTable('users', {
 
 export const sessions = pgTable('sessions', {
     session_id: varchar('session_id', { length: 36 }),
-    user_id: bigint('user_id', { mode: 'number' }).references(() => users.id).notNull(),
+    user_id: bigint('user_id', { mode: 'bigint' }).references(() => users.id).notNull(),
     state: varchar('state', { length: 64 }).notNull(),
     redirectUri: text('redirect_uri').notNull(),
     codeVerifier: text('code_verifier'),
@@ -28,7 +28,7 @@ export const sessions = pgTable('sessions', {
 );
 
 export const tokens = pgTable('tokens', {
-    user_id: bigint('user_id', { mode: 'number' }).references(() => users.id),
+    user_id: bigint('user_id', { mode: 'bigint' }).references(() => users.id),
     frontier_id: integer('frontier_id'),
     accessToken: text('access_token').notNull(),
     refreshToken: text('refresh_token'),
@@ -46,7 +46,7 @@ export const frontier = pgTable('frontier', {
     cmdrName: varchar('cmdr_name', { length: 100 }),
     carrierName: varchar('carrier_name', { length: 30 }),
     shipName: varchar('ship_name', { length: 100 }),
-    credits: bigint('credits', { mode: 'number' }), // Can't believe this has to be a Bigint
+    credits: bigint('credits', { mode: 'bigint' }), // Can't believe this has to be a Bigint
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
