@@ -90,11 +90,17 @@ export async function handleOAuthCallback(sessionId, code, state) {
         expiresAt,
         scope: tokenData.scope
     }).onConflictDoUpdate({
-        accessToken: tokenData.access_token,
-        refreshToken: tokenData.refreshToken,
-        tokenType: tokenData.token_type,
-        expiresAt,
-        scope: tokenData.scope
+        set: {
+            accessToken: tokenData.access_token,
+            refreshToken: tokenData.refreshToken,
+            tokenType: tokenData.token_type,
+            expiresAt,
+            scope: tokenData.scope
+        },
+        setWhere: {
+            user_id: session.user_id,
+            frontier_id: profileData.commander?.id,
+        }
     });
 
     const carrierData = carrier(tokenData.accessToken);
@@ -106,10 +112,16 @@ export async function handleOAuthCallback(sessionId, code, state) {
         shipName: profileData.ship?.shipName,
         credits: profileData.commander?.credits
     }).onConflictDoUpdate({
-        cmdrName: profileData.commander?.name,
-        carrierName: carrierData.name?.name,
-        shipName: profileData.ship?.shipName,
-        credits: profileData.commander?.credits
+        set: {
+            cmdrName: profileData.commander?.name,
+            carrierName: carrierData.name?.name,
+            shipName: profileData.ship?.shipName,
+            credits: profileData.commander?.credits
+        },
+        setWhere: {
+            id: profileData.commander?.id,
+            cmdrName: profileData.commander?.name,
+        }
     });
 
     // Set this account as the new Default
