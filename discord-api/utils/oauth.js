@@ -97,10 +97,7 @@ export async function handleOAuthCallback(sessionId, code, state) {
             expiresAt,
             scope: tokenData.scope
         },
-        targetWhere: {
-            user_id: session.user_id,
-            frontier_id: profileData.commander?.id,
-        }
+        target: [tokens.user_id, tokens.frontier_id],
     });
 
     const carrierData = carrier(tokenData.accessToken);
@@ -118,10 +115,7 @@ export async function handleOAuthCallback(sessionId, code, state) {
             shipName: profileData.ship?.shipName,
             credits: profileData.commander?.credits
         },
-        targetWhere: {
-            id: profileData.commander?.id,
-            cmdrName: profileData.commander?.name,
-        }
+        target: frontier.id
     });
 
     // Set this account as the new Default
