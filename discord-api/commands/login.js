@@ -13,7 +13,7 @@ export async function execute(interaction) {
 
     // Let's make the User because curiousity killed the cat :3
     await db.insert(users).values({
-        id
+        id: BigInt(id)
     }).onConflictDoNothing();
 
     const { authUrl } = await createOAuthSession(id);
