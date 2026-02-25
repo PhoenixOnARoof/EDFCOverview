@@ -50,7 +50,3 @@ export const frontier = pgTable('frontier', {
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull()
 });
-
-public | discord_oauth_sessions | table | root | permanent | heap | 16 kB |
-    public | discord_oauth_tokens | table | root | permanent | heap | 16 kB |
-        public | discord_user_settings
