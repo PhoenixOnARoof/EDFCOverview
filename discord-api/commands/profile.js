@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
-import db from "../db";
-import { frontier, users } from "../db/schema";
-import { createCommand } from "../utils/createCommand";
+import db from "../db.js";
+import { frontier, users } from "../db/schema.js";
+import { createCommand } from "../utils/createCommand.js";
 import { InteractionResponseFlags } from "discord-interactions";
 import { EmbedBuilder } from "@discordjs/builders";
 
@@ -38,7 +38,7 @@ export async function execute(interaction) {
     } catch (error) {
 
         console.error('Profile error:', error);
-        
+
         const embed = new EmbedBuilder()
             .setColor(0xef4444)
             .setTitle('Error')
