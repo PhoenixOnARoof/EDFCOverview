@@ -81,9 +81,6 @@ export async function handleOAuthCallback(sessionId, code, state) {
 
     const profileData = await profile(tokenData.access_token);
 
-    // What on God's sweet Earth is going on here?
-    console.log(session);
-
     const [access_result] = await db.insert(tokens).values({
         user_id: session.user_id,
         frontier_id: profileData.commander?.id,
