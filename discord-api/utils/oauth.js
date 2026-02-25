@@ -79,7 +79,7 @@ export async function handleOAuthCallback(sessionId, code, state) {
 
     const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000);
 
-    const profileData = profile(tokenData.access_token);
+    const profileData = await profile(tokenData.access_token);
 
     const access_result = await db.insert(tokens).values({
         user_id: session.user_id,
@@ -100,7 +100,7 @@ export async function handleOAuthCallback(sessionId, code, state) {
         target: [tokens.user_id, tokens.frontier_id],
     });
 
-    const carrierData = carrier(tokenData.accessToken);
+    const carrierData = await carrier(tokenData.accessToken);
 
     const cmdr_result = await db.insert(frontier).values({
         id: profileData.commander?.id,
