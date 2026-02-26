@@ -98,7 +98,10 @@ client.on('interactionCreate', async (interaction) => {
               .setTitle('Your Token expired... Please login again.')
               .setDescription('You need to login first! Use `/login` to link your Frontier account.');
 
-            return interaction.reply({ embeds: [embed], flags: InteractionResponseFlags.EPHEMERAL });
+            if (interaction.replied || interaction.deferred) {
+              await interaction.editReply({ embeds: [embed], flags: InteractionResponseFlags.EPHEMERAL });
+            } else
+              await interaction.reply({ embeds: [embed], flags: InteractionResponseFlags.EPHEMERAL });
 
           }
 
