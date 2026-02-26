@@ -67,7 +67,7 @@ function createFleetCarrierEmbed(fc) {
             },
             {
                 name: 'Cargo',
-                value: `${fc.capacity.cargoNotForSale} / ${fc.capacity.freeSpace + fc.capacity.cargoNotForSale}`,
+                value: `${fc.cargo.map(x => x.qty).reduce((x, y) => x + y, 0) + fc.capacity.crew} / ${fc.capacity.cargoForSale + fc.capacity.cargoNotForSale + fc.capacity.cargoSpaceReserved + fc.capacity.crew + fc.capacity.freeSpace}`,
                 inline: true,
             },
             {
