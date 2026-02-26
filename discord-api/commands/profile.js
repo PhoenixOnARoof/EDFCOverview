@@ -1,6 +1,3 @@
-import { eq } from "drizzle-orm";
-import db from "../db/index.js";
-import { frontier, users } from "../db/schema.js";
 import { createCommand } from "../utils/createCommand.js";
 import { InteractionResponseFlags } from "discord-interactions";
 import { EmbedBuilder } from "@discordjs/builders";

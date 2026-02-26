@@ -1,8 +1,8 @@
 import { eq } from "drizzle-orm";
-import db from "../db";
-import { frontier } from "../db/schema";
-import { fetchCapi } from "./oauth";
-import { getCached } from "./redis";
+import db from "../db/index.js";
+import { frontier } from "../db/schema.js";
+import { fetchCapi } from "./oauth.js";
+import { getCached } from "./redis.js";
 
 export async function APICall(route, access_token) {
     try {
