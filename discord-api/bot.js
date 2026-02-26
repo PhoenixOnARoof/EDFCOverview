@@ -118,7 +118,7 @@ client.on('interactionCreate', async (interaction) => {
                 tokenType: newRefresh.token_type,
                 expiresAt: new Date(Date.now() + newRefresh.expires_in * 1000)
               })
-              .where(and(eq(tokens.user_id, id), eq(tokens.frontier_id, user.selectedFrontierId)));
+              .where(and(eq(tokens.user_id, id), eq(tokens.frontier_id, account || user.selectedFrontierId)));
 
             interaction.user.expires_at = new Date(Date.now() + newRefresh.expires_in * 1000);
             interaction.user.access_token = newRefresh.access_token;
@@ -128,7 +128,7 @@ client.on('interactionCreate', async (interaction) => {
             console.error(error);
 
             await db.delete(tokens)
-              .where(and(eq(tokens.user_id, id), eq(tokens.frontier_id, user.selectedFrontierId)));
+              .where(and(eq(tokens.user_id, id), eq(tokens.frontier_id, account || user.selectedFrontierId)));
 
             const embed = new EmbedBuilder()
               .setColor(0xef4444)
@@ -145,7 +145,7 @@ client.on('interactionCreate', async (interaction) => {
         }
 
         // Add to the User's Collection
-        interaction.user.selectedFrontierId = user.selectedFrontierId;
+        interaction.user.selectedFrontierId = account || user.selectedFrontierId;
 
       }
 
