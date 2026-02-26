@@ -26,6 +26,29 @@ client.on('interactionCreate', async (interaction) => {
 
   const id = BigInt(interaction.user.id);
 
+  if (interaction.isAutocomplete()) {
+
+    const { commandName } = interaction;
+    const command = client.commands.get(commandName);
+
+    if (!command || !command.autocomplete) return;
+
+    if (interaction.options.getFocused(true).name == 'accounts') {
+
+      const rows = await db
+        .select({ frontier_id: tokens.frontier_id, cmdrName: frontier.cmdrName, carrierName: frontier.carrierName })
+        .from(tokens)
+        .where(eq(tokens.user_id, id))
+        .leftJoin(frontier, eq(tokens.frontier_id, frontier.id));
+
+      return interaction.respond(rows.map((row) => ({ name: row.cmdrName + ` (${row.carrierName})`, value: row.frontier_id })));
+
+    }
+
+    return command.autocomplete(interaction);
+
+  }
+
   if (interaction.isCommand()) {
 
     const { commandName } = interaction;
@@ -50,7 +73,21 @@ client.on('interactionCreate', async (interaction) => {
           return interaction.editReply({ embeds: [embed], flags: InteractionResponseFlags.EPHEMERAL });
         }
 
-        const [token] = await db.select({ expires_at: tokens.expiresAt, refreshToken: tokens.refreshToken, accessToken: tokens.accessToken }).from(tokens).where(and(eq(tokens.user_id, id), eq(tokens.frontier_id, user.selectedFrontierId)));
+        // Multi Account support
+        // Check if option was used
+        let account = null;
+
+        try {
+          account = interaction.options.getInteger('accounts');
+          console.log('Account Given', account);
+        } catch (error) {
+
+        }
+
+        const [token] = await db
+          .select({ expires_at: tokens.expiresAt, refreshToken: tokens.refreshToken, accessToken: tokens.accessToken })
+          .from(tokens)
+          .where(and(eq(tokens.user_id, id), eq(tokens.frontier_id, account || user.selectedFrontierId)));
 
         if (!token) {
 
@@ -157,7 +194,7 @@ app.use(express.json());
 
 import { handleOAuthCallback, refreshAccessToken } from './utils/oauth.js';
 import db from './db/index.js';
-import { tokens, users } from './db/schema.js';
+import { frontier, tokens, users } from './db/schema.js';
 import { and, eq } from 'drizzle-orm';
 app.get('/edfc/:sessionId/callback', async (req, res) => {
 

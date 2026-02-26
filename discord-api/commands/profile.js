@@ -4,7 +4,7 @@ import { EmbedBuilder } from "@discordjs/builders";
 import { getCarrier, getCommander } from "../utils/cAPIs.js";
 import { shareButton } from "../utils/share.js";
 
-export const data = createCommand('profile', 'View your commander profile');
+export const data = createCommand('profile', 'View your commander profile').addIntegerOption(new SlashCommandIntegerOption().setAutocomplete(true).setName('accounts').setDescription('Select the account you wish to view'));
 
 export const login_required = true;
 export const ephemeral = true;
@@ -35,6 +35,8 @@ export async function execute(interaction) {
     }
 
 }
+
+export async function autocomplete() { }
 
 export function createCommanderEmbed(commander, carrier) {
     const formatCredits = (amount) => {
