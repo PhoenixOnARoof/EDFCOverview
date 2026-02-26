@@ -9,10 +9,8 @@
   },
   "scripts": {
     "start": "node bot.js",
-    "dev": "nodemon src/bot.js",
-    "register": "node src/utils/registerCommands.js",
-    "register-guild": "node src/utils/registerCommands.js --guild",
-    "register-user": "node src/utils/registerCommands.js --user",
+    "dev": "nodemon bot.js",
+    "register": "node utils/registerCommands.js",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit migrate",
