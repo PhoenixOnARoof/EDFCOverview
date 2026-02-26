@@ -74,8 +74,12 @@ export async function getCarrier(access_token, frontier_id) {
 
             let carrierName = null;
             if (carrierData.name?.vanityName) {
+
                 const buffer = Buffer.from(carrierData.name.vanityName, 'hex');
-                carrierName = buffer.toString('utf-8')
+                carrierName = buffer.toString('utf-8');
+
+                // Assign to Original
+                carrierData.name.name = carrierName;
             }
 
             await db

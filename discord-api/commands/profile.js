@@ -4,6 +4,7 @@ import { frontier, users } from "../db/schema.js";
 import { createCommand } from "../utils/createCommand.js";
 import { InteractionResponseFlags } from "discord-interactions";
 import { EmbedBuilder } from "@discordjs/builders";
+import { getCarrier, getCommander } from "../utils/cAPIs.js";
 
 export const data = createCommand('profile', 'View your commander profile');
 
@@ -11,20 +12,15 @@ export const login_required = true;
 
 export async function execute(interaction) {
 
-    const id = BigInt(interaction.user.id);
-
     try {
 
-        // const [account] = await db.select().from(frontier).where(eq(frontier.id, interaction.user.selectedFrontierId));
+        const commanderInfo = await getCommander(interaction.user.access_token, interaction.user.selectedFrontierId);
 
-        // const embed = new EmbedBuilder().setTitle(account.cmdrName).setDescription('Master of ' + account.carrierName).setFooter({ text: 'Ship: ' + account.shipName }).addFields({ name: 'Credits', value: (account.credits).toLocaleString() });
+        const carrierInfo = await getCarrier(interaction.user.access_token, interaction.user.selectedFrontierId);
 
-        // return await interaction.editReply({
-        //     embeds: [
-        //         embed
-        //     ],
-        //     flags: InteractionResponseFlags.EPHEMERAL
-        // })
+        const embed = createCommanderEmbed(commanderInfo.commander, carrierInfo);
+
+        return interaction.editReply({ embeds: [embed], components: [], flags: InteractionResponseFlags.EPHEMERAL });
 
     } catch (error) {
 
@@ -39,4 +35,52 @@ export async function execute(interaction) {
 
     }
 
+}
+
+export function createCommanderEmbed(commander, carrier) {
+    const formatCredits = (amount) => {
+        return Number(amount).toLocaleString();
+    };
+
+    const statusColor = commander.alive ? 0x22c55e : 0xef4444;
+
+    return {
+        color: statusColor,
+        title: `CMDR ${commander.name}`,
+        fields: [
+            {
+                name: 'Credits',
+                value: `${formatCredits(commander.credits)} CR`,
+                inline: true,
+            },
+            {
+                name: 'Debt',
+                value: `${formatCredits(commander.debt)} CR`,
+                inline: true,
+            },
+            {
+                name: 'Status',
+                value: commander.docked ? 'Docked' : 'In Space',
+                inline: true,
+            },
+            {
+                name: 'On Foot',
+                value: commander.onfoot ? 'Yes' : 'No',
+                inline: true,
+            },
+            {
+                name: 'Alive',
+                value: commander.alive ? 'Yes' : 'No',
+                inline: true,
+            },
+            {
+                name: 'Carrier',
+                value: carrier.name.name + ` (${carrier.name.callsign})` || 'N/A',
+                inline: false,
+            },
+        ],
+        footer: {
+            text: 'Commander Profile',
+        },
+    };
 }
