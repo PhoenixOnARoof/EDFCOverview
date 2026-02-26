@@ -1,6 +1,6 @@
 import { EmbedBuilder } from "discord.js";
-import { createCommand } from "../utils/createCommand";
-import { shareButton } from "../utils/share";
+import { createCommand } from "../utils/createCommand.js";
+import { shareButton } from "../utils/share.js";
 
 export const data = createCommand('carrier', 'View your fleet carrier information');
 
