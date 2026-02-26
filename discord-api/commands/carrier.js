@@ -1,7 +1,7 @@
-import { EmbedBuilder } from "discord.js";
 import { createCommand } from "../utils/createCommand.js";
 import { shareButton } from "../utils/share.js";
 import { getCarrier } from "../utils/cAPIs.js";
+import { InteractionResponseFlags } from "discord-interactions";
 
 export const data = createCommand('carrier', 'View your fleet carrier information');
 
@@ -13,7 +13,8 @@ export async function execute(interaction) {
 
     return interaction.reply({
         embeds: [embed],
-        components: [shareButton('carrier')]
+        components: [shareButton('carrier')],
+        flags: InteractionResponseFlags.EPHEMERAL
     });
 
 }
