@@ -2,6 +2,7 @@ import { createCommand } from "../utils/createCommand.js";
 import { InteractionResponseFlags } from "discord-interactions";
 import { EmbedBuilder } from "@discordjs/builders";
 import { getCarrier, getCommander } from "../utils/cAPIs.js";
+import { shareButton } from "../utils/share.js";
 
 export const data = createCommand('profile', 'View your commander profile');
 
@@ -18,7 +19,7 @@ export async function execute(interaction) {
 
         const embed = createCommanderEmbed(commanderInfo.commander, carrierInfo);
 
-        return interaction.editReply({ embeds: [embed], components: [], flags: InteractionResponseFlags.EPHEMERAL });
+        return interaction.editReply({ embeds: [embed], components: [shareButton()], flags: InteractionResponseFlags.EPHEMERAL });
 
     } catch (error) {
 

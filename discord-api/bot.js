@@ -136,11 +136,11 @@ client.on('interactionCreate', async (interaction) => {
 
     const customId = interaction.customId;
 
-    if (customId.endsWith('_share')) { 
+    if (customId.endsWith('_share')) {
 
-      console.log(interaction.message.embeds[0].toJSON());
+      const embed = (interaction.message.embeds[0].toJSON());
 
-      return interaction.reply('Replied to your button click :D');
+      return interaction.reply({ embeds: [embed] });
 
     }
 
