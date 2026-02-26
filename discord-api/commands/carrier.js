@@ -13,7 +13,7 @@ export async function execute(interaction) {
 
     const embed = createFleetCarrierEmbed(fleetcarrier);
 
-    return interaction.reply({
+    return interaction.editReply({
         embeds: [embed],
         components: [shareButton('carrier')],
         flags: InteractionResponseFlags.EPHEMERAL
