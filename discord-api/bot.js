@@ -47,7 +47,7 @@ client.on('interactionCreate', async (interaction) => {
             .setTitle('Not Logged In')
             .setDescription('You need to login first! Use `/login` to link your Frontier account.');
 
-          return interaction.reply({ embeds: [embed], flags: InteractionResponseFlags.EPHEMERAL });
+          return interaction.editReply({ embeds: [embed], flags: InteractionResponseFlags.EPHEMERAL });
         }
 
         const [token] = await db.select({ expires_at: tokens.expiresAt, refreshToken: tokens.refreshToken, accessToken: tokens.accessToken }).from(tokens).where(and(eq(tokens.user_id, id), eq(tokens.frontier_id, user.selectedFrontierId)));
@@ -59,7 +59,7 @@ client.on('interactionCreate', async (interaction) => {
             .setTitle('Your Token expired... Please login again.')
             .setDescription('You need to login first! Use `/login` to link your Frontier account.');
 
-          return interaction.reply({ embeds: [embed], flags: InteractionResponseFlags.EPHEMERAL });
+          return interaction.editReply({ embeds: [embed], flags: InteractionResponseFlags.EPHEMERAL });
 
         }
 
