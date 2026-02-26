@@ -1,6 +1,6 @@
 import { createCommand } from "../utils/createCommand.js";
 import { InteractionResponseFlags } from "discord-interactions";
-import { EmbedBuilder } from "@discordjs/builders";
+import { EmbedBuilder, SlashCommandIntegerOption } from "@discordjs/builders";
 import { getCarrier, getCommander } from "../utils/cAPIs.js";
 import { shareButton } from "../utils/share.js";
 
