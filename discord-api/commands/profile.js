@@ -6,6 +6,7 @@ import { getCarrier, getCommander } from "../utils/cAPIs.js";
 export const data = createCommand('profile', 'View your commander profile');
 
 export const login_required = true;
+export const ephemeral = true;
 
 export async function execute(interaction) {
 

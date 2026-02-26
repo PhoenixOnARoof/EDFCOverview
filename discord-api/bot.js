@@ -37,7 +37,7 @@ client.on('interactionCreate', async (interaction) => {
 
       if (command.login_required) {
 
-        await interaction.deferReply();
+        await interaction.deferReply(command.ephemeral ? { flags: InteractionResponseFlags.EPHEMERAL } : {});
 
         const [user] = await db.select({ selectedFrontierId: users.selectedFrontierId }).from(users).where(eq(users.id, id));
 
