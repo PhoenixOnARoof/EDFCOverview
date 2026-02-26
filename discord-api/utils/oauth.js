@@ -1,7 +1,7 @@
 import db from '../db/index.js';
 
 function generateBuffer(j = 32) {
-    const buffer = Buffer.alloc(i);
+    const buffer = Buffer.alloc(j);
     for (let i = 0; i < j; i++) {
         buffer[i] = Math.floor(Math.random() * 256);
     }
