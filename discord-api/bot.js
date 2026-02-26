@@ -132,6 +132,20 @@ client.on('interactionCreate', async (interaction) => {
 
   }
 
+  if (interaction.isButton()) {
+
+    const customId = interaction.customId;
+
+    if (customId.endsWith('_share')) { 
+
+      console.log(interaction.message.embeds[0].toJSON());
+
+      return interaction.reply('Replied to your button click :D');
+
+    }
+
+  }
+
 });
 
 
