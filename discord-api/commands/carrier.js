@@ -5,6 +5,8 @@ import { InteractionResponseFlags } from "discord-interactions";
 
 export const data = createCommand('carrier', 'View your fleet carrier information');
 
+export const login_required = true;
+
 export async function execute(interaction) {
 
     const fleetcarrier = await getCarrier(interaction.user.access_token, interaction.user.selectedFrontierId);
