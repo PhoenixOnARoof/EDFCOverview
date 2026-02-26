@@ -4,7 +4,9 @@ import { getCarrier } from "../utils/cAPIs.js";
 import { InteractionResponseFlags } from "discord-interactions";
 import { SlashCommandIntegerOption } from "discord.js";
 
-export const data = createCommand('carrier', 'View your fleet carrier information').addIntegerOption(new SlashCommandIntegerOption().setAutocomplete(true).setName('accounts').setDescription('Select the account you wish to view'));
+export const data = createCommand('carrier', 'View your fleet carrier information').addIntegerOption(option =>
+    option.setAutocomplete(true).setName('accounts').setDescription('Select the account you wish to view')
+)
 
 export const login_required = true;
 
