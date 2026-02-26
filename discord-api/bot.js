@@ -5,50 +5,129 @@ import { initializeCommands } from './utils/initializeCommands.js';
 import { InteractionResponseFlags } from 'discord-interactions';
 
 export const client = new Client({
-    intents: [
-        // GatewayIntentBits.MessageContent,
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.DirectMessages,
-        GatewayIntentBits.GuildMessages
-    ]
+  intents: [
+    // GatewayIntentBits.MessageContent,
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.DirectMessages,
+    GatewayIntentBits.GuildMessages
+  ]
 });
 
 client.commands = new Map();
 
 client.on('ready', async () => {
-    console.log(`${client.user.tag} ready to fly`);
-    await initializeCommands(client);
+  console.log(`${client.user.tag} ready to fly`);
+  await initializeCommands(client);
 });
 
 client.on('interactionCreate', async (interaction) => {
 
-    console.log(interaction.commandName, interaction.commandType);
+  console.log(interaction.commandName, interaction.commandType);
 
-    if (interaction.isCommand()) {
+  const id = BigInt(interaction.user.id);
 
-        const { commandName } = interaction;
-        const command = client.commands.get(commandName);
+  if (interaction.isCommand()) {
 
-        if (!command) return;
+    const { commandName } = interaction;
+    const command = client.commands.get(commandName);
 
-        try {
-            await command.execute(interaction);
-        } catch (error) {
-            console.error('Command Error', error);
+    if (!command) return;
 
-            const embed = new EmbedBuilder()
-                .setColor(0xef4444)
-                .setTitle('Error')
-                .setDescription('An error occurred: ' + error.message);
+    try {
 
-            if (interaction.replied || interaction.deferred) {
-                await interaction.followUp({ embeds: [embed], flags: InteractionResponseFlags.EPHEMERAL });
-            } else
-                await interaction.reply({ embeds: [embed], flags: InteractionResponseFlags.EPHEMERAL });
+      if (command.login_required) {
+
+        await interaction.deferReply();
+
+        const [user] = await db.select({ selectedFrontierId: users.selectedFrontierId }).from(users).where(eq(users.id, id));
+
+        if (!user) {
+          const embed = new EmbedBuilder()
+            .setColor(0xef4444)
+            .setTitle('Not Logged In')
+            .setDescription('You need to login first! Use `/login` to link your Frontier account.');
+
+          return interaction.reply({ embeds: [embed], flags: InteractionResponseFlags.EPHEMERAL });
+        }
+
+        const [token] = await db.select({ expires_at: tokens.expiresAt, refreshToken: tokens.refreshToken, accessToken: tokens.accessToken }).from(tokens).where(and(eq(tokens.user_id, id), eq(tokens.frontier_id, user.selectedFrontierId)));
+
+        if (!token) {
+
+          const embed = new EmbedBuilder()
+            .setColor(0xef4444)
+            .setTitle('Your Token expired... Please login again.')
+            .setDescription('You need to login first! Use `/login` to link your Frontier account.');
+
+          return interaction.reply({ embeds: [embed], flags: InteractionResponseFlags.EPHEMERAL });
 
         }
 
+        interaction.user.expires_at = token.expires_at;
+        interaction.user.access_token = token.accessToken;
+
+        if (token.expires_at.getTime() <= Date.now()) {
+
+          try {
+
+            // Refresh Access Token
+            const newRefresh = await refreshAccessToken(token.refreshToken);
+
+            await db
+              .update(tokens)
+              .set({
+                accessToken: newRefresh.access_token,
+                refreshToken: newRefresh.refresh_token,
+                tokenType: newRefresh.token_type,
+                expiresAt: new Date(Date.now() + newRefresh.expires_in * 1000)
+              })
+              .where(and(eq(tokens.user_id, id), eq(tokens.frontier_id, user.selectedFrontierId)));
+
+            interaction.user.expires_at = new Date(Date.now() + newRefresh.expires_in * 1000);
+            interaction.user.access_token = newRefresh.access_token;
+
+          } catch (error) {
+
+            console.error(error);
+
+            await db.delete(tokens)
+              .where(and(eq(tokens.user_id, id), eq(tokens.frontier_id, user.selectedFrontierId)));
+
+            const embed = new EmbedBuilder()
+              .setColor(0xef4444)
+              .setTitle('Your Token expired... Please login again.')
+              .setDescription('You need to login first! Use `/login` to link your Frontier account.');
+
+            return interaction.reply({ embeds: [embed], flags: InteractionResponseFlags.EPHEMERAL });
+
+          }
+
+        }
+
+        // Add to the User's Collection
+        interaction.user.selectedFrontierId = user.selectedFrontierId;
+
+      }
+
+      await command.execute(interaction);
+
+    } catch (error) {
+
+      console.error('Command Error', error);
+
+      const embed = new EmbedBuilder()
+        .setColor(0xef4444)
+        .setTitle('Error')
+        .setDescription('An error occurred: ' + error.message);
+
+      if (interaction.replied || interaction.deferred) {
+        await interaction.followUp({ embeds: [embed], flags: InteractionResponseFlags.EPHEMERAL });
+      } else
+        await interaction.reply({ embeds: [embed], flags: InteractionResponseFlags.EPHEMERAL });
+
     }
+
+  }
 
 });
 
@@ -59,15 +138,18 @@ const app = express();
 
 app.use(express.json());
 
-import { handleOAuthCallback } from './utils/oauth.js';
+import { handleOAuthCallback, refreshAccessToken } from './utils/oauth.js';
+import db from './db/index.js';
+import { tokens, users } from './db/schema.js';
+import { and, eq } from 'drizzle-orm';
 app.get('/edfc/:sessionId/callback', async (req, res) => {
 
-    const { sessionId } = req.params;
-    const { code, state } = req.query;
+  const { sessionId } = req.params;
+  const { code, state } = req.query;
 
-    try {
-        await handleOAuthCallback(sessionId, code, state);
-        res.send(`
+  try {
+    await handleOAuthCallback(sessionId, code, state);
+    res.send(`
           <!DOCTYPE html>
           <html>
             <head>
@@ -96,9 +178,9 @@ app.get('/edfc/:sessionId/callback', async (req, res) => {
             </body>
           </html>
         `);
-    } catch (error) {
-        console.error('OAuth callback error:', error);
-        res.status(500).send(`
+  } catch (error) {
+    console.error('OAuth callback error:', error);
+    res.status(500).send(`
           <!DOCTYPE html>
           <html>
             <head>
@@ -126,14 +208,14 @@ app.get('/edfc/:sessionId/callback', async (req, res) => {
             </body>
           </html>
         `);
-    }
+  }
 
 });
 
 const PORT = process.env.PORT || 8087;
 
 app.listen(PORT, () => {
-    console.log(`HTTP server listening on port ${PORT}`);
+  console.log(`HTTP server listening on port ${PORT}`);
 });
 
 

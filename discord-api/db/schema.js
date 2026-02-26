@@ -45,6 +45,7 @@ export const frontier = pgTable('frontier', {
     id: integer('frontier_id').primaryKey(),
     cmdrName: varchar('cmdr_name', { length: 100 }),
     carrierName: varchar('carrier_name', { length: 30 }),
+    carrierId: varchar('carrier_id', { length: 30 }),
     shipName: varchar('ship_name', { length: 100 }),
     credits: bigint('credits', { mode: 'bigint' }), // Can't believe this has to be a Bigint
     createdAt: timestamp('created_at').defaultNow().notNull(),

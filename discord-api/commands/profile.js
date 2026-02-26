@@ -7,35 +7,24 @@ import { EmbedBuilder } from "@discordjs/builders";
 
 export const data = createCommand('profile', 'View your commander profile');
 
+export const login_required = true;
+
 export async function execute(interaction) {
 
     const id = BigInt(interaction.user.id);
 
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-
-    if (!user) {
-        const embed = new EmbedBuilder()
-            .setColor(0xef4444)
-            .setTitle('Not Logged In')
-            .setDescription('You need to login first! Use `/login` to link your Frontier account.');
-
-        return interaction.reply({ embeds: [embed], flags: InteractionResponseFlags.EPHEMERAL });
-    }
-
-    await interaction.deferReply();
-
     try {
 
-        const [account] = await db.select().from(frontier).where(eq(frontier.id, user.selectedFrontierId));
+        // const [account] = await db.select().from(frontier).where(eq(frontier.id, interaction.user.selectedFrontierId));
 
-        const embed = new EmbedBuilder().setTitle(account.cmdrName).setDescription('Master of ' + account.carrierName).setFooter({ text: 'Ship: ' + account.shipName }).addFields({ name: 'Credits', value: (account.credits).toString() });
+        // const embed = new EmbedBuilder().setTitle(account.cmdrName).setDescription('Master of ' + account.carrierName).setFooter({ text: 'Ship: ' + account.shipName }).addFields({ name: 'Credits', value: (account.credits).toLocaleString() });
 
-        return await interaction.editReply({
-            embeds: [
-                embed
-            ],
-            flags: InteractionResponseFlags.EPHEMERAL
-        })
+        // return await interaction.editReply({
+        //     embeds: [
+        //         embed
+        //     ],
+        //     flags: InteractionResponseFlags.EPHEMERAL
+        // })
 
     } catch (error) {
 

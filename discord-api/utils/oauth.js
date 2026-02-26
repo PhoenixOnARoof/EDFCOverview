@@ -106,6 +106,7 @@ export async function handleOAuthCallback(sessionId, code, state) {
         id: profileData.commander?.id,
         cmdrName: profileData.commander?.name,
         carrierName: carrierData.name?.name,
+        carrierId: carrierData.name?.callsign,
         shipName: profileData.ship?.shipName,
         credits: profileData.commander?.credits
     }).onConflictDoUpdate({
@@ -124,6 +125,22 @@ export async function handleOAuthCallback(sessionId, code, state) {
         .set({
             selectedFrontierId: profileData.commander?.id
         }).where(eq(users.id, session.user_id));
+
+    try {
+        const cacheKey = `profile:${profileData.commander?.id}:live`;
+        const redis = (await import('./redis.js')).default;
+        await redis.setex(cacheKey, 900, JSON.stringify(profileData));
+    } catch (e) {
+        console.warn('Could not cache carrier:', e);
+    }
+
+    try {
+        const cacheKey = `fleetcarrier:${profileData.commander?.id}:live`;
+        const redis = (await import('./redis.js')).default;
+        await redis.setex(cacheKey, 900, JSON.stringify(carrierData));
+    } catch (e) {
+        console.warn('Could not cache carrier:', e);
+    }
 
     return { cmdr_result, access_result };
 
@@ -150,4 +167,61 @@ async function exchangeCodeForToken(code, codeVerifier, redirectUri) {
     }
 
     return response.json();
+}
+
+export async function refreshAccessToken(refresh_token) {
+
+    const response = await fetch(`${FRONTIER_AUTH_SERVER}/token`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+            grant_type: 'refresh_token',
+            client_id: FRONTIER_CLIENT_ID,
+            refresh_token
+        })
+    });
+
+    if (!response.ok) {
+        const error = await response.text();
+        throw new Error('Token refresh failed: ' + error);
+    }
+
+    return response.json();
+
+}
+
+const CAPI_SERVER_LIVE = 'https://companion.orerve.net';
+const CAPI_SERVER_BETA = 'https://pts-companion.orerve.net';
+
+export async function fetchCapi(endpoint, access_token, isBeta = false) {
+
+    const server = isBeta ? CAPI_SERVER_BETA : CAPI_SERVER_LIVE;
+
+    const controller = new AbortController();
+    // 30s is enough
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+    try {
+        const response = await fetch(`${server}/${endpoint}`, {
+            headers: {
+                'Authorization': 'Bearer ' + access_token,
+                'User-Agent': 'EDFC/1.0',
+            },
+            // The more you know
+            'signal': controller.signal
+        });
+
+        if (!response.ok) {
+            const error = await response.text();
+            throw new Error('CAPI Error: ' + error);
+        }
+
+        return await response.json();
+
+    } finally {
+        clearTimeout(timeoutId);
+    }
+
 }
