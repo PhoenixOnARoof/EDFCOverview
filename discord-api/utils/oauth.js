@@ -127,7 +127,7 @@ export async function handleOAuthCallback(sessionId, code, state) {
         }).where(eq(users.id, session.user_id));
 
     try {
-        const cacheKey = `profile:${profileData.commander?.id}:live`;
+        const cacheKey = `profile:${profileData.commander?.id}`;
         const redis = (await import('./redis.js')).default;
         await redis.setex(cacheKey, 900, JSON.stringify(profileData));
     } catch (e) {
@@ -135,7 +135,7 @@ export async function handleOAuthCallback(sessionId, code, state) {
     }
 
     try {
-        const cacheKey = `fleetcarrier:${profileData.commander?.id}:live`;
+        const cacheKey = `fleetcarrier:${profileData.commander?.id}`;
         const redis = (await import('./redis.js')).default;
         await redis.setex(cacheKey, 900, JSON.stringify(carrierData));
     } catch (e) {
