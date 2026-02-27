@@ -79,7 +79,6 @@ client.on('interactionCreate', async (interaction) => {
 
         try {
           account = interaction.options.getInteger('accounts');
-          console.log('Account Given', account);
         } catch (error) {
 
         }
@@ -88,8 +87,6 @@ client.on('interactionCreate', async (interaction) => {
           .select({ expires_at: tokens.expiresAt, refreshToken: tokens.refreshToken, accessToken: tokens.accessToken })
           .from(tokens)
           .where(and(eq(tokens.user_id, id), eq(tokens.frontier_id, account || user.selectedFrontierId)));
-
-        console.log('> TOKEN INFO', token);
 
         if (!token) {
 

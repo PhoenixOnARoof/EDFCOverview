@@ -171,8 +171,6 @@ async function exchangeCodeForToken(code, codeVerifier, redirectUri) {
 
 export async function refreshAccessToken(refresh_token) {
 
-    console.log('Refreshing', refresh_token);
-
     const response = await fetch(`${FRONTIER_AUTH_SERVER}/token`, {
         method: 'POST',
         headers: {
