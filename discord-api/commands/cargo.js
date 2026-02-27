@@ -1,5 +1,5 @@
 import { EmbedBuilder } from "discord.js";
-import { getCarrier } from "../utils/cAPIs";
+import { getCarrier } from "../utils/cAPIs.js";
 import { createCommand } from "../utils/createCommand.js";
 import db from "../db/index.js";
 import { frontier } from "../db/schema.js";
