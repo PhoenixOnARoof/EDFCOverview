@@ -138,9 +138,9 @@ client.on('interactionCreate', async (interaction) => {
               .setDescription('You need to login first! Use `/login` to link your Frontier account.');
 
             if (interaction.replied || interaction.deferred) {
-              await interaction.editReply({ embeds: [embed], flags: InteractionResponseFlags.EPHEMERAL });
+              return interaction.editReply({ embeds: [embed], flags: InteractionResponseFlags.EPHEMERAL });
             } else
-              await interaction.reply({ embeds: [embed], flags: InteractionResponseFlags.EPHEMERAL });
+              return interaction.reply({ embeds: [embed], flags: InteractionResponseFlags.EPHEMERAL });
 
           }
 
@@ -163,9 +163,9 @@ client.on('interactionCreate', async (interaction) => {
         .setDescription('An error occurred: ' + error.message);
 
       if (interaction.replied || interaction.deferred) {
-        await interaction.followUp({ embeds: [embed], flags: InteractionResponseFlags.EPHEMERAL });
+        return await interaction.followUp({ embeds: [embed], flags: InteractionResponseFlags.EPHEMERAL });
       } else
-        await interaction.reply({ embeds: [embed], flags: InteractionResponseFlags.EPHEMERAL });
+        return await interaction.reply({ embeds: [embed], flags: InteractionResponseFlags.EPHEMERAL });
 
     }
 
