@@ -15,11 +15,11 @@ export function capitalizer(sentence = '') {
 
 let csvs = {};
 
-const files = readdirSync('./asset_ids/').filter(x => x.endsWith('.csv'));
+const files = readdirSync('./FDevIDs/').filter(x => x.endsWith('.csv'));
 
 for (const file_name of files) {
 
-    const file = readFileSync('./asset_ids/' + file_name, 'utf-8').toLowerCase();
+    const file = readFileSync('./FDevIDs/' + file_name, 'utf-8').toLowerCase();
 
     csvs[file_name.split('.')[0].toLowerCase()] = parse(file, {
         columns: true,
