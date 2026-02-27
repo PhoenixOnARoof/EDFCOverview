@@ -7,7 +7,9 @@ import { eq } from "drizzle-orm";
 import { shareButton } from "../utils/share.js";
 import { InteractionResponseFlags } from "discord-interactions";
 
-export const data = createCommand('cargo', 'View your current cargo');
+export const data = createCommand('cargo', 'View your current cargo').addIntegerOption(option =>
+    option.setAutocomplete(true).setName('accounts').setDescription('Select the account you wish to view')
+);
 
 export const login_required = true;
 
