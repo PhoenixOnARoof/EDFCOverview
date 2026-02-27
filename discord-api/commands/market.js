@@ -26,7 +26,7 @@ export async function execute(interaction) {
     const carrier = await getCarrier(interaction.user.access_token, interaction.user.selectedFrontierId);
 
     const commodities = (carrier.orders?.commodities?.sales || []).filter(x => x.stock).map(x => ({
-        name: capitalizer(csvs.commodities[x.name].name),
+        name: capitalizer(csvs.commoditiy[x.name]),
         value: `${x.stock} (${x.price} CR)`,
         inline: true
     }));
