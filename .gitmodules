@@ -1,0 +1,3 @@
+[submodule "discord-api/FDevIDs"]
+	path = discord-api/FDevIDs
+	url = https://github.com/EDCD/FDevIDs.git
