@@ -92,7 +92,7 @@ export async function handleOAuthCallback(sessionId, code, state) {
     }).onConflictDoUpdate({
         set: {
             accessToken: tokenData.access_token,
-            refreshToken: tokenData.refreshToken,
+            refreshToken: tokenData.refresh_token,
             tokenType: tokenData.token_type,
             expiresAt,
             scope: tokenData.scope
