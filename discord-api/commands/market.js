@@ -6,6 +6,7 @@ import db from "../db/index.js";
 import csvs, { capitalizer } from "../utils/FAssetIDs.js";
 import { shareButton } from "../utils/share.js";
 import { InteractionResponseFlags } from "discord-interactions";
+import { eq } from "drizzle-orm";
 
 export const data = createCommand('market', 'View market data from the last docked station');
 
