@@ -89,6 +89,8 @@ client.on('interactionCreate', async (interaction) => {
           .from(tokens)
           .where(and(eq(tokens.user_id, id), eq(tokens.frontier_id, account || user.selectedFrontierId)));
 
+        console.log('> TOKEN INFO', token);
+
         if (!token) {
 
           const embed = new EmbedBuilder()
