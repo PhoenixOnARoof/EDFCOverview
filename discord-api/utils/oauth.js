@@ -85,7 +85,7 @@ export async function handleOAuthCallback(sessionId, code, state) {
         user_id: session.user_id,
         frontier_id: profileData.commander?.id,
         accessToken: tokenData.access_token,
-        refreshToken: tokenData.refreshToken,
+        refreshToken: tokenData.refresh_token,
         tokenType: tokenData.token_type,
         expiresAt,
         scope: tokenData.scope
